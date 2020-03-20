@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+
+# set the project name
+project(gp)
+add_subdirectory(external/pybind11)
+find_package(AMReX)
+pybind11_add_module(gp gp.cpp)
