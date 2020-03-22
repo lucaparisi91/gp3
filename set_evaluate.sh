@@ -1,0 +1,3 @@
+
+
+sed "s:LOCAL_ASSIGNMENT_MARKER:${3}:" ${2}

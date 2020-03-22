@@ -13,12 +13,10 @@ using Real = double;
 
 using namespace amrex;
 
-
 inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;} 
 
 void fillBox( const Box & bx,  const Array4<Real> & data  , py::array_t<double> values )
 {
-
     auto r = values.unchecked<2>();  
     const int * lo =bx.loVect();
     const int * hi =bx.hiVect();
@@ -29,6 +27,40 @@ void fillBox( const Box & bx,  const Array4<Real> & data  , py::array_t<double> 
             {
                 data(i,j,0)=r(i,j);
             }    
+}
+
+Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom)
+{
+    const Real* dx = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
+
+    Real norm2=0;
+    for ( MFIter mfi( phi_real); mfi.isValid(); ++mfi )
+    {
+        const Box& bx = mfi.validbox();
+        const int* lo = bx.loVect();
+        const int *hi= bx.hiVect();
+        Array4< const Real> const & phi_real_box = phi_real[mfi].const_array();
+        Array4< const Real> const & phi_imag_box = phi_imag[mfi].const_array();
+
+        for (int j=lo[1];j<=hi[1];j++)
+            for (int i=lo[0];i<=hi[0];i++)
+            {
+                Real r= prob_lo[0] + (i+0.5) * dx[0];
+
+                norm2+=(phi_real_box(i,j,0)*phi_real_box(i,j,0)
+                    + phi_imag_box(i,j,0)*phi_imag_box(i,j,0))*r;
+            }
+    }
+    amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
+    return norm2*2*M_PI*dx[0]*dx[1];
+}
+
+void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom)
+{
+    Real norm2=normCylindrical2(phi_real,phi_imag,geom);
+    phi_real.mult(1./std::sqrt(norm2));
+    phi_imag.mult(1./std::sqrt(norm2));
 }
 
 
@@ -139,15 +171,51 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
     eulerStepper stepper_phi;
+    const Real* dx = geom.CellSize();
+
+
+    normalize(phi_real_old,phi_imag_old,geom);
 
     WriteSingleLevelPlotfile(pltfile, phi_real_old, {"phi"}, geom, 0, 0);
-    Real dt=0.01;
-    
+    Real dt=1e-4;
+    linPoissonReal.setLevelBC(0,nullptr);
+    linPoissonImag.setLevelBC(0,nullptr);
 
-    stepper_phi.evolve(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,linPoissonReal,linPoissonImag,geom, bc, 0., dt);
-    
+    int nBlocks=100;
+    int stepsPerBlock=1000;
 
-    pltfile = amrex::Concatenate("out/plt",1,5);
-    WriteSingleLevelPlotfile(pltfile, phi_real_new, {"phi"}, geom, 0, 0);
+    Real time=0;
+    for (int i=0;i<nBlocks;i++)
+    {
+        for (int j=0;j<stepsPerBlock;j++)
+        {
+            // evolution
+            stepper_phi.evolve(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,linPoissonReal,linPoissonImag,geom, bc, time, dt);
+            // normalization
+            normalize(phi_real_new,phi_imag_new,geom);
+            
+            // swap old and new solutions
+            std::swap(phi_real_new,phi_real_old);
+            std::swap(phi_imag_new,phi_imag_old);
+
+            time+=dt;
+       }
+
+       // output 
+       {
+            std::cout << "----------------------------------" << std::endl;
+            std::cout << "Time: " << time << std::endl; 
+            std::cout << "Max Real: "<< phi_real_old.max(0) << "; Max Imag: "<< phi_imag_old.max(0)<<std::endl;
+            std::cout << "Min Real: "<< phi_real_old.min(0) << "; Min Imag: "<< phi_imag_old.min(0)<<std::endl;
+
+            pltfile = amrex::Concatenate("out/plt",(i+1)*stepsPerBlock,5);
+            WriteSingleLevelPlotfile(pltfile, phi_real_old, {"phi"}, geom, time, 0);
+
+
+       }
+    }   
+
+    std::cout << "----------------------------------" << std::endl;
+    std::cout << "End at time " << time << std::endl; 
 
 }

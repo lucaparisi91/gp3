@@ -13,7 +13,7 @@ class geometry(gp_c.geometry):
 		self.step = [ (h - l)/n for l,h,n in zip(self.lower_edges,self.higher_edges,self.shape) ]
 		self.dimensions=len(shape)
 	def positions(self,axis):
-
+		
 		x=np.arange(self.lower_edges[axis],self.higher_edges[axis],self.step[axis])
 		x+=0.5*self.step[axis]
 		if axis==0:

@@ -9,16 +9,13 @@ void eulerStepper::evolve(
 	Real time, Real dt)
 {
 	//exchange boundaries conditions
-	state_old_real.FillBoundary(geom.periodicity());
+	//state_old_real.FillBoundary(geom.periodicity());
 	
 	//state_old_real.setDomainBndry(0, 0, 1, geom);
 	//state_old_imag.setDomainBndry(0, 0, 1, geom);
 
-    FillDomainBoundary(state_old_real, geom, bc);
-    FillDomainBoundary(state_old_imag, geom, bc);
-
-   	laplacianOperatorReal.setLevelBC(0,nullptr);
-  	laplacianOperatorImag.setLevelBC(0,nullptr);
+    //FillDomainBoundary(state_old_real, geom, bc);
+    //FillDomainBoundary(state_old_imag, geom, bc);
 
 	evaluate(
 		state_new_real,state_new_imag,
@@ -26,8 +23,8 @@ void eulerStepper::evolve(
 		time,geom,laplacianOperatorReal,laplacianOperatorImag
 		);
 
-	//state_new_real.mult(-dt);
+	state_new_real.mult(-dt);
 
-	//state_new_real.plus(state_old_real,0,1,0);
-
+	state_new_real.plus(state_old_real,0,1,0);
+	
 }

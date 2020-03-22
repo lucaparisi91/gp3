@@ -1,0 +1,58 @@
+=== If no file names and line numbers are shown below, one can run
+            addr2line -Cpfie my_exefile my_line_address
+    to convert `my_line_address` (e.g., 0x4a6b) into file name and line number.
+    Or one can use amrex/Tools/Backtrace/parse_bt.py.
+
+=== Please note that the line number reported by addr2line may not be accurate.
+    One can use
+            readelf -wl my_exefile | grep my_line_address'
+    to find out the offset for that line.
+
+ 0: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x41) [0x7f142ffe9641]
+
+ 1: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x352) [0x7f142ffeb3d2]
+
+ 2: /lib/x86_64-linux-gnu/libc.so.6(+0x3ef20) [0x7f14316e4f20]
+
+ 3: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x9c14f) [0x7f142ff3b14f]
+
+ 4: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x9b1ee) [0x7f142ff3a1ee]
+
+ 5: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x92f31) [0x7f142ff31f31]
+
+ 6: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x89696) [0x7f142ff28696]
+
+ 7: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x843f6) [0x7f142ff233f6]
+
+ 8: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x7ed26) [0x7f142ff1dd26]
+
+ 9: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x7ef2b) [0x7f142ff1df2b]
+
+10: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x6c183) [0x7f142ff0b183]
+
+11: python(_PyMethodDef_RawFastCallKeywords+0x264) [0x56501bf68114]
+
+12: python(_PyCFunction_FastCallKeywords+0x21) [0x56501bf68231]
+
+13: python(_PyEval_EvalFrameDefault+0x4e9d) [0x56501bfcca5d]
+
+14: python(_PyEval_EvalCodeWithName+0x2f9) [0x56501bf216f9]
+
+15: python(PyEval_EvalCodeEx+0x44) [0x56501bf225f4]
+
+16: python(PyEval_EvalCode+0x1c) [0x56501bf2261c]
+
+17: python(+0x21c974) [0x56501c023974]
+
+18: python(PyRun_FileExFlags+0xa1) [0x56501c02dcf1]
+
+19: python(PyRun_SimpleFileExFlags+0x1c3) [0x56501c02dee3]
+
+20: python(+0x227f95) [0x56501c02ef95]
+
+21: python(_Py_UnixMain+0x3c) [0x56501c02f0bc]
+
+22: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7) [0x7f14316c7b97]
+
+23: python(+0x1d0990) [0x56501bfd7990]
+
