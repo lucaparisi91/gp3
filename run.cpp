@@ -170,7 +170,8 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
     linPoissonReal.setDomainBC(bc_lo, bc_hi);
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
-    eulerStepper stepper_phi;
+    RK4Stepper stepper_phi(1,Nghost);
+    //eulerStepper stepper_phi;
     const Real* dx = geom.CellSize();
 
 
@@ -210,7 +211,6 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
 
             pltfile = amrex::Concatenate("out/plt",(i+1)*stepsPerBlock,5);
             WriteSingleLevelPlotfile(pltfile, phi_real_old, {"phi"}, geom, time, 0);
-
 
        }
     }   
