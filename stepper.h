@@ -6,6 +6,7 @@
 #include "evaluate.h"
 using namespace amrex;
 
+
  class stepper
  {
 public:
@@ -20,20 +21,24 @@ public:
  class eulerStepper : public stepper
  {
  public:
+
+ 	eulerStepper(bool isImaginaryTime_) : isImaginaryTime(isImaginaryTime_) {}
 	virtual void evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
 	MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,
 	 Geometry & geom ,    const Vector<BCRec> & bc,
 	 Real time, Real dt);
-
+ private:
+ 	bool isImaginaryTime;
  };
 
  class RK4Stepper : public stepper
  {
  	/* Implements the 4th order Runje-Kutta stepper*/
  public:
- 	RK4Stepper(int nComponents_,int ghosts_) : ghosts({ghosts_,ghosts_,ghosts_}),nComponents(nComponents_) {}
+ 	RK4Stepper(bool isImaginaryTime_,int nComponents_,int ghosts_) : 
+ 		ghosts({ghosts_,ghosts_,ghosts_}),nComponents(nComponents_),isImaginaryTime(isImaginaryTime_) {}
  	virtual void evolve( 
  	MultiFab & state_new_real, MultiFab & state_new_imag,
  	MultiFab & state_old_real,  MultiFab & state_old_imag,
@@ -47,6 +52,11 @@ private:
 	MultiFab tmp2_imag;
 	int nComponents;
 	IntVect ghosts;
+	void evaluate_complex_( 
+	MultiFab & state_new_real, MultiFab & state_new_imag,
+	MultiFab & state_old_real,  MultiFab & state_old_imag,
+	Real time, Geometry & geom ,  MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag );
+	bool isImaginaryTime;
  };
 
  #endif

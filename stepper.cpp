@@ -1,6 +1,5 @@
 #include "stepper.h"
 
-
 void eulerStepper::evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
@@ -23,10 +22,20 @@ void eulerStepper::evolve(
 		time,geom,laplacianOperatorReal,laplacianOperatorImag
 		);
 
-	state_new_real.mult(-dt);
-
+	if (!isImaginaryTime)
+	{
+		state_new_real.mult(-dt);
+		state_new_imag.mult(dt);
+		std::swap(state_new_real,state_new_imag);
+		
+	}
+	else
+	{
+		state_new_real.mult(-dt);
+		state_new_imag.mult(-dt);
+	}
 	state_new_real.plus(state_old_real,0,1,0);
-	
+	state_new_imag.plus(state_old_imag,0,1,0);
 }
 
 void RK4Stepper::evolve( 
@@ -42,7 +51,7 @@ void RK4Stepper::evolve(
 	tmp2_imag.define(state_new_real.boxArray(), state_new_real.DistributionMap(), nComponents, ghosts[0]);
 
 
-	evaluate(
+	evaluate_complex_(
 		tmp_real,tmp_imag,
 		state_old_real,state_old_imag,
 		time,geom,laplacianOperatorReal,laplacianOperatorImag
@@ -64,7 +73,7 @@ void RK4Stepper::evolve(
 	tmp_imag.mult(0.5);
 	tmp_imag.plus(state_old_imag,0,nComponents,ghosts[0]);
 
-	evaluate(
+	evaluate_complex_(
 		tmp2_real,tmp2_imag,
 		tmp_real,tmp_imag,
 		time + dt*0.5,geom,laplacianOperatorReal,laplacianOperatorImag
@@ -78,7 +87,7 @@ void RK4Stepper::evolve(
 	tmp2_real.plus(state_old_real,0,nComponents,ghosts[0]);
 	tmp2_imag.mult(0.5);
 	tmp2_imag.plus(state_old_imag,0,nComponents,ghosts[0]);
-	evaluate(
+	evaluate_complex_(
 		tmp_real,tmp_imag,
 		tmp2_real,tmp2_imag,
 		time + dt*0.5,geom,laplacianOperatorReal,laplacianOperatorImag
@@ -90,7 +99,7 @@ void RK4Stepper::evolve(
 
 	tmp_real.plus(state_old_real,0,nComponents,ghosts[0]);
 	tmp_imag.plus(state_old_imag,0,nComponents,ghosts[0]);
-	evaluate(
+	evaluate_complex_(
 		tmp2_real,tmp2_imag,
 		tmp_real,tmp_imag,
 		time + dt,geom,laplacianOperatorReal,laplacianOperatorImag
@@ -102,3 +111,20 @@ void RK4Stepper::evolve(
 	amrex::MultiFab::Saxpy(state_new_imag,1./6.,tmp2_imag,0,0,nComponents,ghosts);
 }
 
+void RK4Stepper::evaluate_complex_( 
+	MultiFab & state_new_real, MultiFab & state_new_imag,
+	MultiFab & state_old_real,  MultiFab & state_old_imag,
+	Real time, Geometry & geom ,  MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag )
+{
+	evaluate(
+			state_new_real,state_new_imag,
+			state_old_real,state_old_imag,
+			time,geom,laplacianOperatorReal,laplacianOperatorImag
+			);
+	if (!isImaginaryTime)
+	{
+		state_new_imag.mult(-1);
+		std::swap(state_new_real,state_new_imag);
+	}
+
+}

@@ -10,7 +10,6 @@ using Real = double;
 #include "timer.h"
 #include "stepper.h"
 
-
 using namespace amrex;
 
 inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;} 
@@ -64,7 +63,7 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
 }
 
 
-void run(py::array_t<double> initialCondition,const geometry & geomInfo)
+void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCondition_imag,const geometry & geomInfo)
 {	
     amrex::Initialize(MPI_COMM_WORLD);
 
@@ -124,11 +123,16 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
          {
             const Box& bx = mfi.validbox();
 
-            Array4<Real> const& data = phi_real_old[mfi].array();
-            fillBox(bx,data,initialCondition);
+            Array4<Real> const& data_real = phi_real_old[mfi].array();
+            Array4<Real> const& data_imag = phi_imag_old[mfi].array();
+
+            fillBox(bx,data_real,initialCondition_real);
+            fillBox(bx,data_imag,initialCondition_imag);
+
         }
 
-    std::string pltfile = amrex::Concatenate("out/plt",0,5);
+    std::string pltfile_real_init = amrex::Concatenate("out/phi_real",0,5);
+    std::string pltfile_imag_init = amrex::Concatenate("out/phi_imag",0,5);
 
     Vector<BCRec> bc(Ncomp);
     for (int n = 0; n < Ncomp; ++n)
@@ -166,23 +170,24 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
     bc_lo[0]=LinOpBCType::Neumann;
     bc_hi[0]=LinOpBCType::Neumann;
 
-
     linPoissonReal.setDomainBC(bc_lo, bc_hi);
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
-    RK4Stepper stepper_phi(1,Nghost);
-    //eulerStepper stepper_phi;
+    RK4Stepper stepper_phi(false,1,Nghost);
+    //eulerStepper stepper_phi(true);
     const Real* dx = geom.CellSize();
 
 
     normalize(phi_real_old,phi_imag_old,geom);
 
-    WriteSingleLevelPlotfile(pltfile, phi_real_old, {"phi"}, geom, 0, 0);
+    WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
+    WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
+
     Real dt=1e-4;
     linPoissonReal.setLevelBC(0,nullptr);
     linPoissonImag.setLevelBC(0,nullptr);
 
-    int nBlocks=100;
+    int nBlocks=10000;
     int stepsPerBlock=1000;
 
     Real time=0;
@@ -201,7 +206,6 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
 
             time+=dt;
        }
-
        // output 
        {
             std::cout << "----------------------------------" << std::endl;
@@ -209,8 +213,11 @@ void run(py::array_t<double> initialCondition,const geometry & geomInfo)
             std::cout << "Max Real: "<< phi_real_old.max(0) << "; Max Imag: "<< phi_imag_old.max(0)<<std::endl;
             std::cout << "Min Real: "<< phi_real_old.min(0) << "; Min Imag: "<< phi_imag_old.min(0)<<std::endl;
 
-            pltfile = amrex::Concatenate("out/plt",(i+1)*stepsPerBlock,5);
-            WriteSingleLevelPlotfile(pltfile, phi_real_old, {"phi"}, geom, time, 0);
+            std::string pltfile_real = amrex::Concatenate("out/phi_real",i+1,5);
+            std::string pltfile_imag = amrex::Concatenate("out/phi_imag",i+1,5);
+
+            WriteSingleLevelPlotfile(pltfile_real, phi_real_old, {"phi"}, geom, time, 0);
+            WriteSingleLevelPlotfile(pltfile_imag, phi_imag_old, {"phi"}, geom, time, 0);
 
        }
     }   

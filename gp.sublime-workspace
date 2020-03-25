@@ -4,6 +4,42 @@
 		"selected_items":
 		[
 			[
+				"is",
+				"isImaginaryTime"
+			],
+			[
+				"init",
+				"initial_real"
+			],
+			[
+				"arra",
+				"array_t"
+			],
+			[
+				"pltfile_rea",
+				"pltfile_real_init"
+			],
+			[
+				"phi_",
+				"phi_real"
+			],
+			[
+				"stepp",
+				"stepper_phi"
+			],
+			[
+				"ghos",
+				"ghosts_"
+			],
+			[
+				"n",
+				"nComponents\tint nComponents"
+			],
+			[
+				"geom",
+				"Geometry"
+			],
+			[
 				"tmp_",
 				"tmp_real"
 			],
@@ -54,10 +90,6 @@
 			[
 				"linP",
 				"linPoissonReal"
-			],
-			[
-				"phi_",
-				"phi_old_real"
 			],
 			[
 				"set",
@@ -147,7 +179,41 @@
 			"file": "run.cpp",
 			"settings":
 			{
-				"buffer_size": 6834,
+				"buffer_size": 7444,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gp.cpp",
+			"settings":
+			{
+				"buffer_size": 500,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "run.h",
+			"settings":
+			{
+				"buffer_size": 266,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "evaluate.cpp",
+			"settings":
+			{
+				"buffer_size": 1634,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "stepper.cpp",
+			"settings":
+			{
+				"buffer_size": 4160,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -156,52 +222,16 @@
 			"file": "stepper.h",
 			"settings":
 			{
-				"buffer_size": 1344,
+				"buffer_size": 1847,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "python/gp.py",
+			"file": "evaluate.h",
 			"settings":
 			{
-				"buffer_size": 679,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "python/system.py",
-			"settings":
-			{
-				"buffer_size": 1740,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gp.sublime-project",
-			"settings":
-			{
-				"buffer_size": 554,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "evaluate.cpp",
-			"settings":
-			{
-				"buffer_size": 1596,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "evaluate_templates/evaluate_cylindrical_template.cpp",
-			"settings":
-			{
-				"buffer_size": 1401,
-				"encoding": "UTF-8",
+				"buffer_size": 605,
 				"line_ending": "Unix"
 			}
 		},
@@ -224,22 +254,10 @@
 			}
 		},
 		{
-			"contents": "#include \"stepper.h\"\n\n\nvoid eulerStepper::evolve( \n\tMultiFab & state_new_real, MultiFab & state_new_imag,\n\tMultiFab & state_old_real,  MultiFab & state_old_imag,\n\tMLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,\n\tGeometry & geom ,    const Vector<BCRec> & bc,\n\tReal time, Real dt)\n{\n\t//exchange boundaries conditions\n\t//state_old_real.FillBoundary(geom.periodicity());\n\t\n\t//state_old_real.setDomainBndry(0, 0, 1, geom);\n\t//state_old_imag.setDomainBndry(0, 0, 1, geom);\n\n    //FillDomainBoundary(state_old_real, geom, bc);\n    //FillDomainBoundary(state_old_imag, geom, bc);\n\n\tevaluate(\n\t\tstate_new_real,state_new_imag,\n\t\tstate_old_real,state_old_imag,\n\t\ttime,geom,laplacianOperatorReal,laplacianOperatorImag\n\t\t);\n\n\tstate_new_real.mult(-dt);\n\n\tstate_new_real.plus(state_old_real,0,1,0);\n\t\n}\n\n\n\nvoid RK4Stepper::evolve( \n\tMultiFab & state_new_real, MultiFab & state_new_imag,\n\tMultiFab & state_old_real,  MultiFab & state_old_imag,\n\tMLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,\n\tGeometry & geom ,    const Vector<BCRec> & bc,\n\tReal time, Real dt)\n{\n\n\n\tevaluate(\n\t\ttmp_real,tmp_imag,\n\t\tstate_old_real,state_old_imag,\n\t\ttime,geom,laplacianOperatorReal,laplacianOperatorImag\n\t\t);\n\n\ttmp_real.mult(-dt);\n\n\t\n\tamrex::MultiFab::Copy(state_new_real, state_old_real, 0, 0, nComponents,ghosts);\n\tamrex::MultiFab::Saxpy(state_new_real,1./6.,tmp_real,0,0,nComponents,ghosts);\n\n\ttmp_real.mult(0.5);\n\ttmp_real.plus(state_old_real,0,nComponents,ghosts[0]);\n\tevaluate(\n\t\ttmp2_real,tmp2_imag,\n\t\ttmp_real,tmp_imag,\n\t\ttime + dt*0.5,geom,laplacianOperatorReal,laplacianOperatorImag\n\t\t);\n\ttmp2_real.mult(-dt);\n\tamrex::MultiFab::Saxpy(state_new_real,1./3.,tmp2_real,0,0,nComponents,ghosts);\n\n\n\ttmp2_real.plus(state_old_real,0,nComponents,ghosts[0]);\n\tevaluate(\n\t\ttmp_real,tmp_imag,\n\t\ttmp2_real,tmp2_imag,\n\t\ttime + dt*0.5,geom,laplacianOperatorReal,laplacianOperatorImag\n\t\t);\n\ttmp_real.mult(-dt);\n\tamrex::MultiFab::Saxpy(state_new_real,1./3.,tmp2_real,0,0,nComponents,ghosts);\n\n\ttmp_real.plus(state_old_real,0,nComponents,ghosts[0]);\n\tevaluate(\n\t\ttmp2_real,tmp2_imag,\n\t\ttmp_real,tmp_imag,\n\t\ttime + dt,geom,laplacianOperatorReal,laplacianOperatorImag\n\t\t);\n\ttmp2_real.mult(-dt);\n\tamrex::MultiFab::Saxpy(state_new_real,1./6.,tmp2_real,0,0,nComponents,ghosts);\n\n}",
-			"file": "stepper.cpp",
-			"file_size": 2281,
-			"file_write_time": 132294602610561578,
-			"settings":
-			{
-				"buffer_size": 2281,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "python/test.py",
 			"settings":
 			{
-				"buffer_size": 462,
+				"buffer_size": 695,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -333,23 +351,35 @@
 		"selected_items":
 		[
 			[
-				"packa",
-				"Package Control: List Packages"
-			],
-			[
 				"remove",
 				"Package Control: Remove Package"
-			],
-			[
-				"contril ins",
-				"Package Control: Install Package"
 			],
 			[
 				"install",
 				"Package Control: Install Package"
 			],
 			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"install pa",
+				"Package Control: Install Package"
+			],
+			[
+				"remove p",
+				"Package Control: Remove Package"
+			],
+			[
 				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Package Control: List Packages"
+			],
+			[
+				"contril ins",
 				"Package Control: Install Package"
 			],
 			[
@@ -383,22 +413,25 @@
 	"file_history":
 	[
 		"/home/luca/source/GP3/stepper.cpp",
-		"/home/luca/source/GP3/python/test.py",
+		"/home/luca/source/GP3/python/system.py",
+		"/home/luca/source/GP3/python/gp.py",
+		"/home/luca/source/GP3/evaluate.cpp",
+		"/home/luca/source/GP3/AMReX/include/AMReX_BaseFab.H",
+		"/home/luca/source/GP3/evaluate_templates/evaluate_cylindrical_template.cpp",
+		"/home/luca/source/GP3/geometry.h",
+		"/home/luca/source/GP3/gp.sublime-project",
 		"/home/luca/source/GP3/stepper.h",
+		"/home/luca/source/GP3/python/test.py",
 		"/home/luca/source/GP3/evaluate.h",
 		"/home/luca/source/GP3/run.h",
-		"/home/luca/source/GP3/python/system.py",
 		"/home/luca/source/GP3/stencils.h",
 		"/home/luca/source/GP3/gp.py",
 		"/home/luca/source/GP3/system.py",
 		"/home/luca/source/GP3/AMReX/include/AMReX_Orientation.H",
-		"/home/luca/source/GP3/evaluate.cpp",
 		"/home/luca/software/amrex/19.01/amrex/lib/include/AMReX_BC_TYPES.H",
 		"/home/luca/source/GP3/gp.cpp",
 		"/home/luca/source/GP3/run.cpp",
 		"/home/luca/source/GP3/timer.h",
-		"/home/luca/source/GP3/geometry.h",
-		"/home/luca/source/GP3/gp.sublime-project",
 		"/home/luca/software/amrex/19.01/amrex/lib/include/AMReX_LO_BCTYPES.H",
 		"/home/luca/source/GP3/test.py",
 		"/home/luca/source/GP3/AMReX/include/AMReX_Gpu.H",
@@ -437,6 +470,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"pltfile",
+			"nghos",
+			"define",
 			"dt",
 			"normalize",
 			"metric",
@@ -461,7 +497,6 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
 				{
@@ -470,15 +505,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6834,
+						"buffer_size": 7444,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								706,
-								706
+								5376,
+								5376
 							]
 						],
 						"settings":
@@ -486,6 +521,34 @@
 							"syntax": "Packages/C++/C++.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 663.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "gp.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 500,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								38,
+								38
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -495,137 +558,77 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "stepper.h",
+					"buffer": 2,
+					"file": "run.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1344,
+						"buffer_size": 266,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1212,
-								1212
+								266,
+								266
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "evaluate.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1634,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1273,
+								1273
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 510.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "python/gp.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 679,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								154,
-								154
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "python/system.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1740,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								58,
-								58
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 108.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "gp.sublime-project",
+					"file": "stepper.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 554,
+						"buffer_size": 4160,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								166,
-								166
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 51.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "evaluate.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1596,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1563,
-								1563
+								20,
+								20
 							]
 						],
 						"settings":
@@ -634,47 +637,75 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 612.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "evaluate_templates/evaluate_cylindrical_template.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1401,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1235,
-								1235
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 510.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 8,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 2,
+			"selected": 4,
 			"sheets":
 			[
+				{
+					"buffer": 5,
+					"file": "stepper.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1847,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1589,
+								1589
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 663.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "evaluate.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 605,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								605,
+								605
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 124.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
 				{
 					"buffer": 7,
 					"file": "set_evaluate.sh",
@@ -688,8 +719,8 @@
 						"selection":
 						[
 							[
-								44,
-								44
+								0,
+								0
 							]
 						],
 						"settings":
@@ -701,7 +732,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
@@ -729,53 +760,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
 					"buffer": 9,
-					"file": "stepper.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2281,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 10,
 					"file": "python/test.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 462,
+						"buffer_size": 695,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2,
-								2
+								688,
+								688
 							]
 						],
 						"settings":
@@ -783,7 +785,7 @@
 							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 153.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
@@ -832,7 +834,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 155.0
+		"height": 165.0
 	},
 	"output.find_results":
 	{
@@ -856,12 +858,44 @@
 		"selected_items":
 		[
 			[
-				"step",
-				"stepper.cpp"
+				"eval",
+				"evaluate.h"
 			],
 			[
 				"stepper",
 				"stepper.h"
+			],
+			[
+				"gp",
+				"python/gp.py"
+			],
+			[
+				"sys",
+				"python/system.py"
+			],
+			[
+				"step",
+				"stepper.cpp"
+			],
+			[
+				"evalu",
+				"evaluate.cpp"
+			],
+			[
+				"geometr",
+				"geometry.h"
+			],
+			[
+				"gp.cp",
+				"gp.cpp"
+			],
+			[
+				"geom",
+				"geometry.h"
+			],
+			[
+				"geome",
+				"geometry.h"
 			],
 			[
 				"test",
@@ -872,24 +906,12 @@
 				"gp.sublime-project"
 			],
 			[
-				"sys",
-				"python/system.py"
-			],
-			[
-				"eval",
-				"evaluate_templates/evaluate_cylindrical_template.cpp"
-			],
-			[
 				"stepp",
 				"stepper.cpp"
 			],
 			[
 				"gp.py",
 				"python/gp.py"
-			],
-			[
-				"gp",
-				"gp.py"
 			],
 			[
 				"stenci",
@@ -938,14 +960,6 @@
 			[
 				"run.",
 				"run.cpp"
-			],
-			[
-				"geom",
-				"geometry.h"
-			],
-			[
-				"geometr",
-				"geometry.h"
 			],
 			[
 				"gp.h",
@@ -1028,7 +1042,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 1,
+	"selected_group": 0,
 	"settings":
 	{
 	},
@@ -1036,7 +1050,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 50.0,
+	"side_bar_width": 258.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

@@ -35,7 +35,7 @@ def expandVariables(body,psi_real,psi_imag,x):
 def createAssignments(body):
 	code =r"Real tmp = " + body + ";\n"
 	code+= r"phi_new_real(i,j,0)+= tmp*phi_old_real(i,j,0);" + "\n"
-	code+= r"phi_new_imag(i,j,0)+= tmp*phi_new_imag(i,j,0);" + "\n"
+	code+= r"phi_new_imag(i,j,0)+= tmp*phi_old_imag(i,j,0);" + "\n"
 	return code
 
 def compileLocalPotential(code,coordinate="cylindrical"):

@@ -38,6 +38,7 @@ void evaluate(
 	     	for (int i=lo[0];i<=hi[0];i++)
 	     	{
 	     		phi_new_real(i,j,0) *= -0.5 ;
+	     		phi_new_imag(i,j,0) *= -0.5 ;
 	   
 	     		auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
 	     		auto z= prob_lo[1] + (j + 0.5) * dx[1]; 
@@ -45,7 +46,7 @@ void evaluate(
 
 	     		Real tmp =  100. * (phi_old_real(i,j,0)*phi_old_real(i,j,0) + phi_old_imag(i,j,0)*phi_old_imag(i,j,0)) + 0.5 *( r*r + z*z);
 phi_new_real(i,j,0)+= tmp*phi_old_real(i,j,0);
-phi_new_imag(i,j,0)+= tmp*phi_new_imag(i,j,0);
+phi_new_imag(i,j,0)+= tmp*phi_old_imag(i,j,0);
 
 
 	 	    }	
