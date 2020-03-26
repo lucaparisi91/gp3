@@ -183,7 +183,7 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
     WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
 
-    Real dt=1e-4;
+    Real dt=1e-5;
     linPoissonReal.setLevelBC(0,nullptr);
     linPoissonImag.setLevelBC(0,nullptr);
 

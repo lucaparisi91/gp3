@@ -36,12 +36,9 @@ class gp_simulation_cylindrical:
 	def __init__(self,folder_name_real,folder_name_imag,geo):
 		out_stream = io.StringIO()
 		
-		save_stdout = sys.stdout
-		sys.stdout = open('trash', 'w')
 		self.yt_input_real=yt.load(folder_name_real);
 		self.yt_input_imag=yt.load(folder_name_imag);
 		
-		sys.stdout = save_stdout
 
 		data_real=self.yt_input_real.all_data()
 		data_imag=self.yt_input_imag.all_data()
@@ -66,6 +63,8 @@ class gp_simulation_cylindrical:
 		return self._integrate(y)
 	def norm(self):
 		return self.average(lambda r,z: 1.)
+	def density(self):
+		return np.array(self.phi_real**2 + self.phi_imag**2)
 
 
 
@@ -102,3 +101,5 @@ class gp_simulations:
 	def __repr__(self):
 
 		return "<folder=" + str(self.folder) +", len=" + str(len(self))+ "= >"
+	def __getitem__(self,index):
+			return gp_simulation_cylindrical(self.phi_reals[index],self.phi_imags[index],self.geo)

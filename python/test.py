@@ -4,6 +4,7 @@ import numpy as np
 from importlib import reload
 import system
 from colorama import Fore, Back, Style,init
+from math import *
 
 init()
 
@@ -22,12 +23,12 @@ system.compileLocalPotential(potential,"cylindrical")
 reload(gp_c)
 sim=gp.gp_simulation_cylindrical("out/initial_real","out/initial_imag",geo)
 # excites the dipole mode
-delta_psi=np.exp(- 0.01*sim.z)
+delta_psi=np.exp(- 1j * pi  * np.tanh(sim.z/0.8))
 
-sim.phi_real*=np.real(delta_psi)
-sim.phi_imag*=np.imag(delta_psi)
+psi0=(sim.phi_real + 1j * sim.phi_imag)*delta_psi
 
-
+sim.phi_real=np.real(psi0)
+sim.phi_imag=np.imag(psi0)
 
 print( Fore.YELLOW + "Running..." + Fore.RESET)
 gp_c.run(sim.phi_real,sim.phi_imag,geo)
