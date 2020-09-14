@@ -28,7 +28,7 @@ void fillBox( const Box & bx,  const Array4<Real> & data  , py::array_t<double> 
             }    
 }
 
-Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom)
+Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0)
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
@@ -47,8 +47,8 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
             {
                 Real r= prob_lo[0] + (i+0.5) * dx[0];
 
-                norm2+=(phi_real_box(i,j,0)*phi_real_box(i,j,0)
-                    + phi_imag_box(i,j,0)*phi_imag_box(i,j,0))*r;
+                norm2+=(phi_real_box(i,j,0,component)*phi_real_box(i,j,0,component)
+                    + phi_imag_box(i,j,0,component)*phi_imag_box(i,j,0,component))*r;
             }
     }
     amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
@@ -57,9 +57,13 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
 
 void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom)
 {
-    Real norm2=normCylindrical2(phi_real,phi_imag,geom);
-    phi_real.mult(1./std::sqrt(norm2));
-    phi_imag.mult(1./std::sqrt(norm2));
+    /* Normalizes each component indipendently  */
+    for (int i=0;i<phi_real.nComp();i++)
+        {
+            Real norm2=normCylindrical2(phi_real,phi_imag,geom,i);
+            phi_real.mult(1./std::sqrt(norm2),i,1);
+            phi_imag.mult(1./std::sqrt(norm2),i,1);
+    }
 }
 
 
@@ -155,6 +159,8 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     MLPoisson linPoissonReal({geom}, {ba}, {dmInit}, info);
     MLPoisson linPoissonImag({geom}, {ba}, {dmInit}, info);
 
+    //linPoissonReal.setNComp(nComp);
+
     // order of stencil
     int linop_maxorder = 2;
     linPoissonReal.setMaxOrder(linop_maxorder);
@@ -173,7 +179,7 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     linPoissonReal.setDomainBC(bc_lo, bc_hi);
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
-    RK4Stepper stepper_phi(false,1,Nghost);
+    RK4Stepper stepper_phi(false,Ncomp,Nghost);
     //eulerStepper stepper_phi(true);
     const Real* dx = geom.CellSize();
 

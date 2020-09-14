@@ -1,0 +1,16 @@
+
+
+class geometry3DSpherical
+{
+  geometry3DSpherical(real_t Rmax,size_t bins)
+  {
+    _stepSize=Rmax/bins;
+  };
+  
+  real_t stepSize() {return stepSize;}
+
+  
+
+private:
+  real_t stepSize;
+}

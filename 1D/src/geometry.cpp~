@@ -1,0 +1,8 @@
+#include "geometry.h"
+
+geometrySpherical::geometrySpherical(real_t rMax,size_t bins) :
+  _rMax(rMax) ,
+  _bins(bins)
+{
+  _sizeStep=_rMax/_bins;
+}

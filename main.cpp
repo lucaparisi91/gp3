@@ -5,7 +5,7 @@ using Real = double;
 int main(int argc,char** argv)
 {
 	
-	run();
-	amrex::Finalize();
+  run();
+  amrex::Finalize();
 
 }

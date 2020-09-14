@@ -8,53 +8,45 @@
             readelf -wl my_exefile | grep my_line_address'
     to find out the offset for that line.
 
- 0: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x41) [0x7f1c6d66da61]
+ 0: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x45) [0x7f3c6c9ae715]
 
- 1: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x352) [0x7f1c6d66f7f2]
+ 1: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x362) [0x7f3c6c9b0512]
 
- 2: /lib/x86_64-linux-gnu/libc.so.6(+0x3ef20) [0x7f1c6ed69f20]
+ 2: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex6AssertEPKcS1_iS1_+0xeb) [0x7f3c6c8db3bb]
 
- 3: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x9e49c) [0x7f1c6d5bf49c]
+ 3: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex7MLLinOp11setDomainBCERKSt5arrayINS_11LinOpBCTypeELm3EES5_+0xfe) [0x7f3c6c9c97be]
 
- 4: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x9d551) [0x7f1c6d5be551]
+ 4: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x62528) [0x7f3c6c8c9528]
 
- 5: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x9cb3c) [0x7f1c6d5bdb3c]
+ 5: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x650ee) [0x7f3c6c8cc0ee]
 
- 6: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x93926) [0x7f1c6d5b4926]
+ 6: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x703b1) [0x7f3c6c8d73b1]
 
- 7: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x89831) [0x7f1c6d5aa831]
+ 7: python(PyCFunction_Call+0x56) [0x559dce430f76]
 
- 8: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x844fc) [0x7f1c6d5a54fc]
+ 8: python(_PyObject_MakeTpCall+0x22f) [0x559dce3ee85f]
 
- 9: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x7ed76) [0x7f1c6d59fd76]
+ 9: python(_PyEval_EvalFrameDefault+0x4596) [0x559dce475f56]
 
-10: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x7f00b) [0x7f1c6d5a000b]
+10: python(_PyEval_EvalCodeWithName+0x2d2) [0x559dce43ba92]
 
-11: /home/luca/source/GP3/python/gp_c.cpython-37m-x86_64-linux-gnu.so(+0x6c1d3) [0x7f1c6d58d1d3]
+11: python(PyEval_EvalCodeEx+0x44) [0x559dce43c754]
 
-12: python(_PyMethodDef_RawFastCallKeywords+0x264) [0x562cf165c114]
+12: python(PyEval_EvalCode+0x1c) [0x559dce4caedc]
 
-13: python(_PyCFunction_FastCallKeywords+0x21) [0x562cf165c231]
+13: python(+0x219f84) [0x559dce4caf84]
 
-14: python(_PyEval_EvalFrameDefault+0x4e9d) [0x562cf16c0a5d]
+14: python(+0x24c1f4) [0x559dce4fd1f4]
 
-15: python(_PyEval_EvalCodeWithName+0x2f9) [0x562cf16156f9]
+15: python(PyRun_FileExFlags+0xa1) [0x559dce3c56e1]
 
-16: python(PyEval_EvalCodeEx+0x44) [0x562cf16165f4]
+16: python(PyRun_SimpleFileExFlags+0x3b4) [0x559dce3c5ac6]
 
-17: python(PyEval_EvalCode+0x1c) [0x562cf161661c]
+17: python(+0x11598b) [0x559dce3c698b]
 
-18: python(+0x21c974) [0x562cf1717974]
+18: python(Py_BytesMain+0x39) [0x559dce4ffd19]
 
-19: python(PyRun_FileExFlags+0xa1) [0x562cf1721cf1]
+19: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3) [0x7f3c6dc050b3]
 
-20: python(PyRun_SimpleFileExFlags+0x1c3) [0x562cf1721ee3]
-
-21: python(+0x227f95) [0x562cf1722f95]
-
-22: python(_Py_UnixMain+0x3c) [0x562cf17230bc]
-
-23: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7) [0x7f1c6ed4cb97]
-
-24: python(+0x1d0990) [0x562cf16cb990]
+20: python(+0x1dee93) [0x559dce48fe93]
 

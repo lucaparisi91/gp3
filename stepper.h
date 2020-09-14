@@ -6,7 +6,6 @@
 #include "evaluate.h"
 using namespace amrex;
 
-
  class stepper
  {
 public:
@@ -33,12 +32,15 @@ public:
  	bool isImaginaryTime;
  };
 
+
  class RK4Stepper : public stepper
  {
  	/* Implements the 4th order Runje-Kutta stepper*/
  public:
  	RK4Stepper(bool isImaginaryTime_,int nComponents_,int ghosts_) : 
- 		ghosts({ghosts_,ghosts_,ghosts_}),nComponents(nComponents_),isImaginaryTime(isImaginaryTime_) {}
+		ghosts(AMREX_D_DECL(ghosts_,ghosts_,ghosts_)),nComponents(nComponents_),isImaginaryTime(isImaginaryTime_) {
+
+		}
  	virtual void evolve( 
  	MultiFab & state_new_real, MultiFab & state_new_imag,
  	MultiFab & state_old_real,  MultiFab & state_old_imag,
@@ -51,7 +53,7 @@ private:
 	MultiFab tmp2_real;
 	MultiFab tmp2_imag;
 	int nComponents;
-	IntVect ghosts;
+	amrex::IntVect ghosts;
 	void evaluate_complex_( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
