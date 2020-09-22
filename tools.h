@@ -3,6 +3,9 @@
 #include <AMReX_PlotFileUtil.H>
 using namespace amrex;
 
+Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0);
+
+
 
 class initializer
 {
@@ -21,7 +24,7 @@ class initializer
         }
     }
 
-    
+
 
     static initializer  & instance()
     {

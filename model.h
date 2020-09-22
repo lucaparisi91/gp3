@@ -65,7 +65,7 @@ public:
 	     		auto y= prob_lo[1] + (j + 0.5) * dx[1];
 				auto z= prob_lo[2] + (k + 0.5) * dx[2];
 
-                dataReal( i, j , k , 0 )=  exp(-x*x - y*y - z*z);
+                dataReal( i, j , k , 0 )=  evaluator(x,y,z);
                 			
 		
 	 	    }	

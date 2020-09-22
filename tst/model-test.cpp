@@ -2,8 +2,8 @@
 #include "model.h"
 #include <vector>
 #include "evaluate.h"
-
-
+#include "tools.h"
+#include <cmath>
 
 TEST(initModel,evaluate)
 {
@@ -19,13 +19,22 @@ TEST(initModel,evaluate)
 
     int order = 4;
 
+
+
     model m(geom,order, 1);
     model m2(geom,order, 1);
 
     
-    Real alpha =1 ;
+    Real alpha =0.5;
+    
 
     m.fill( [alpha](Real x, Real y, Real z) {return exp(- alpha *(x*x + y*y + z*z));}  );
+
+    auto initNorm2 = norm( m.real() , m.imag(),  m.getGeometry(), 0) ;
+
+    Real initNorm2Expected = std::pow( (M_PI/(2*alpha)) , 3/2. );
+
+    ASSERT_NEAR(initNorm2 , initNorm2Expected, 1e-2 );
 
     auto & state = m.real();
 
@@ -35,8 +44,8 @@ TEST(initModel,evaluate)
 	auto y= prob_lo[1] + (j + 0.5) * dx[1];
 	auto z= prob_lo[2] + (k + 0.5) * dx[2];		
 
-    ASSERT_NEAR( data(i,j,k,0) , exp(-alpha* ( x*x +  y*y + z*z) )  , 1e-3);
-    
+    ASSERT_NEAR( data(i,j,k,0) , exp(-alpha* ( x*x +  y*y + z*z) )  , 1e-2);
+
     ENDLOOP
 
 
@@ -44,8 +53,6 @@ TEST(initModel,evaluate)
         m.real() , m.imag() , 
         0 , m.getGeometry() , m.realLaplacian() , m.imagLaplacian() 
      );
-
-    exit(0);
 
 
 
