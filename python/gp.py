@@ -9,65 +9,119 @@ import io
 import os
 import sys
 
+
 class geometry(gp_c.geometry):
-	def __init__(self,shape,domain):
+	def __init__(self,shape,domain,symmetry="none"):
 
 		super().__init__(shape)
-		if len(shape) != 2:
-			raise NotImplementedError()
 
 		self.lower_edges= [bound[0] for bound in domain]
 		self.higher_edges= [bound[1] for bound in domain]
 		self.step = [ (h - l)/n for l,h,n in zip(self.lower_edges,self.higher_edges,self.shape) ]
 		self.dimensions=len(shape)
+		self.symmetry=symmetry
+
+
 	def positions(self,axis):
-		
+
 		x=np.arange(self.lower_edges[axis],self.higher_edges[axis],self.step[axis])
 		x+=0.5*self.step[axis]
-		if axis==0:
-			return np.outer(x,np.ones(shape=(self.shape[1])))
-		else :
-			if axis==1:
-				return np.outer(np.ones(shape=self.shape[0]),x)
+
+		if self.dimensions == 1 :
+			return x
+
+		if self.dimensions == 2:
+			if axis==0:
+				return np.outer(x,np.ones(shape=(self.shape[1])))
+			else :
+				if axis==1:
+					return np.outer(np.ones(shape=self.shape[0]),x)
+		
+		if self.dimensions == 3 :
+			if axis == 0:
+				return np.outer(x,np.ones(shape=(self.shape[1],self.shape[2]))).reshape(self.shape)
+			else:
+				if axis == 1:
+					tmp=np.outer(x,np.ones(shape=(self.shape[2])))
+					return np.outer(np.ones(shape=(self.shape[0])),tmp).reshape(self.shape)
+				else:
+					if axis == 2:
+						return  np.outer(np.ones(shape=(self.shape[0],self.shape[1])),x).reshape(self.shape)
 
 
 
-class gp_simulation_cylindrical:
+
+class gp_simulation:
 	def __init__(self,folder_name_real,folder_name_imag,geo):
 		out_stream = io.StringIO()
 		
-		self.yt_input_real=yt.load(folder_name_real);
-		self.yt_input_imag=yt.load(folder_name_imag);
-		
+		self.yt_input_real=yt.load(folder_name_real)
+		self.yt_input_imag=yt.load(folder_name_imag)
 
 		data_real=self.yt_input_real.all_data()
 		data_imag=self.yt_input_imag.all_data()
 		self.geo=geo
-		self.r=np.array(data_real.fcoords)[:,0]
-		self.z=np.array(data_real.fcoords)[:,1]
+
+		if geo.symmetry == "cylindrical" :
+			self.r=np.array(data_real.fcoords)[:,0]
+			self.z=np.array(data_real.fcoords)[:,1]
+			self.r=self.r.reshape(geo.shape)
+			self.z=self.z.reshape(geo.shape)
+		else:
+
+			if (  geo.dimensions >= 1 ):
+				self.x=np.array(data_real.fcoords)[:,0].reshape(geo.shape)
+
+				if (geo.dimensions >= 2):
+					self.y=np.array(data_real.fcoords)[:,1].reshape(geo.shape)
+
+					if (geo.dimensions >= 3):
+						self.z=np.array(data_real.fcoords)[:,2].reshape(geo.shape)
+				
+		
 		self.phi_real=self.yt_input_real.all_data()["phi"]
 		self.phi_imag=self.yt_input_imag.all_data()["phi"]
 
-
-		self.r=self.r.reshape(geo.shape)
-		self.z=self.z.reshape(geo.shape)
 		self.phi_real=self.phi_real.reshape(geo.shape)
 		self.phi_imag=self.phi_imag.reshape(geo.shape)
 
 		self.time=float(self.yt_input_imag.current_time)
 
+	def _coords(self):
+
+		if self.geo.dimensions == 3:
+			return (self.x, self.y,self.z)
+		if self.geo.symmetry == "cylindrical":
+			return (self.r,self.z)
+			
+
 	def _integrate(self,y):
-		return 2*pi*np.sum(y*self.r)*self.geo.step[0] *self.geo.step[1]
+		if self.geo.symmetry == "cylindrical":
+			return 2*pi*np.sum(y*self.r)*self.geo.step[0] *self.geo.step[1]
+		else:
+			res = np.sum(y)
+			dv=1
+			for i in range(self.geo.dimensions):
+				dv*=self.geo.step[i]
+			return res*dv
+
+	
 	def average(self,f):
-		y=f(self.r,self.z)*(self.phi_real**2 + self.phi_imag**2)
+		if hasattr(f, '__call__'):
+
+			coords = self._coords()
+			integrand=f(*coords)
+		else:
+			integrand=f
+
+
+		y=integrand*(self.phi_real**2 + self.phi_imag**2)
 		return self._integrate(y)
 	def norm(self):
-		return self.average(lambda r,z: 1.)
+		return self.average(1.)
 	def density(self):
 		return np.array(self.phi_real**2 + self.phi_imag**2)
-
-
-
+	
 
 class gp_simulations:
 

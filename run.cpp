@@ -9,24 +9,30 @@ using Real = double;
 #include "evaluate.h"
 #include "timer.h"
 #include "stepper.h"
+#include "tools.h"
+
 
 using namespace amrex;
 
-inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;} 
+inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;}
 
-void fillBox( const Box & bx,  const Array4<Real> & data  , py::array_t<double> values )
+
+void fillBox( const Box & bx,  const Array4<Real> & data  , py::array_t<double> values , int ncomps=1)
 {
-    auto r = values.unchecked<2>();  
+    auto r = values.unchecked<3>();
     const int * lo =bx.loVect();
     const int * hi =bx.hiVect();
     auto size= bx.size();
 
-    for(int j=lo[1];j<=hi[1];j++)
-        for (int i=lo[0];i<=hi[0];i++)
-            {
-                data(i,j,0)=r(i,j);
-            }    
+    int c = 0;
+    for (int k=lo[2];k<=hi[2];k++)
+        for(int j=lo[1];j<=hi[1];j++)
+            for (int i=lo[0];i<=hi[0];i++)
+                {
+                    data(i,j,k,c)=r(i,j,k);
+                }    
 }
+
 
 Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0)
 {
@@ -55,21 +61,80 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
     return norm2*2*M_PI*dx[0]*dx[1];
 }
 
+
+Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0)
+{
+    const Real* dx = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
+
+    Real norm2=0;
+    for ( MFIter mfi( phi_real); mfi.isValid(); ++mfi )
+    {
+        const Box& bx = mfi.validbox();
+        const int* lo = bx.loVect();
+        const int *hi= bx.hiVect();
+        Array4< const Real> const & phi_real_box = phi_real[mfi].const_array();
+        Array4< const Real> const & phi_imag_box = phi_imag[mfi].const_array();
+
+#if AMREX_SPACEDIM == 2
+        for (int j=lo[1];j<=hi[1];j++)
+            for (int i=lo[0];i<=hi[0];i++)
+            {
+             
+                norm2+=(phi_real_box(i,j,0,component)*phi_real_box(i,j,0,component)
+                    + phi_imag_box(i,j,0,component)*phi_imag_box(i,j,0,component));
+            }
+    
+#endif
+
+
+#if AMREX_SPACEDIM == 3
+        for (int k=lo[2];k<=hi[2];k++)
+            for (int j=lo[1];j<=hi[1];j++)
+                for (int i=lo[0];i<=hi[0];i++)
+                    {
+
+                        norm2+=(phi_real_box(i,j,k,component)*phi_real_box(i,j,k,component)
+                        + phi_imag_box(i,j,k,component)*phi_imag_box(i,j,k,component));
+                    }
+#endif      
+    }
+
+    amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
+
+
+    Real dV=1;
+
+    for (int d=0;d<amrex::SpaceDim;d++)
+    {
+        dV*=dx[d];
+    }
+
+    return norm2*dV;
+}
+
 void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom)
 {
     /* Normalizes each component indipendently  */
     for (int i=0;i<phi_real.nComp();i++)
         {
-            Real norm2=normCylindrical2(phi_real,phi_imag,geom,i);
+            Real norm2=norm(phi_real,phi_imag,geom,i);
+            std::cout << norm2 << std::endl;
+
             phi_real.mult(1./std::sqrt(norm2),i,1);
             phi_imag.mult(1./std::sqrt(norm2),i,1);
     }
 }
 
 
+
+
+
+
+
 void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCondition_imag,const geometry & geomInfo)
 {	
-    amrex::Initialize(MPI_COMM_WORLD);
+    initializer::instance().init();
 
 	  // What time is it now?  We'll use this to compute total run time.
     Real strt_time = amrex::second();
@@ -78,31 +143,36 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     int n_cell, max_grid_size, maxSteps, plot_int;
     Vector<int> is_periodic(AMREX_SPACEDIM,1);  // periodic in all direction by default
 
-    is_periodic[0]=0;
+
     // make BoxArray and Geometry
     BoxArray ba;
     Geometry geom;
     {
       IntVect dom_lo(AMREX_D_DECL(       0,        0,        0));
-      IntVect dom_hi(AMREX_D_DECL(geomInfo.shape[0]-1, geomInfo.shape[1]-1, 0));
+      IntVect dom_hi(AMREX_D_DECL(geomInfo.shape[0]-1, geomInfo.shape[1]-1, geomInfo.shape[2]-1));
       Box domain(dom_lo, dom_hi);
 
-        // Initialize the boxarray "ba" from the single box "bx"
-        ba.define(domain);
-        // Break up boxarray "ba" into chunks no larger than "max_grid_size" along a direction
-        //ba.maxSize(max_grid_size);
+      // Initialize the boxarray "ba" from the single box "bx"
+      ba.define(domain);
+      // Break up boxarray "ba" into chunks no larger than "max_grid_size" along a direction
+      //ba.maxSize(max_grid_size);
 
        // This defines the physical box, [-1,1] in each direction.
-        RealBox real_box({AMREX_D_DECL( geomInfo.lower_edges[0],geomInfo.lower_edges[1], 0.) },
-                         {AMREX_D_DECL( geomInfo.higher_edges[0], geomInfo.higher_edges[1], 0.)});
+        RealBox real_box({AMREX_D_DECL( geomInfo.lower_edges[0],geomInfo.lower_edges[1], geomInfo.lower_edges[2]) },
+                         {AMREX_D_DECL( geomInfo.higher_edges[0], geomInfo.higher_edges[1],geomInfo.higher_edges[2] )});
 
         // This defines a Geometry object
-        geom.define(domain,&real_box,1,is_periodic.data());
+        int coord = 0;
+        geom.define(domain,&real_box,coord,is_periodic.data());
     }
 
+
+    // order of stencil
+    int linop_maxorder = 2;
+
     // Nghost = number of ghost cells for each array 
-    int Nghost = 3;
-    
+    int Nghost = linop_maxorder + 1;
+
     // Ncomp = number of components for each array
     int Ncomp  = 1;
     
@@ -121,7 +191,8 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     phi_real_new=0.;
 
     phi_real_old=0.;
-    phi_imag_new=0.;    
+    phi_imag_new=0.;
+
 
     for (MFIter mfi(phi_real_new); mfi.isValid(); ++mfi)
          {
@@ -138,63 +209,63 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     std::string pltfile_real_init = amrex::Concatenate("out/phi_real",0,5);
     std::string pltfile_imag_init = amrex::Concatenate("out/phi_imag",0,5);
 
+    /* Set up periodic boundary conditions in all directions*/
+    
     Vector<BCRec> bc(Ncomp);
+
     for (int n = 0; n < Ncomp; ++n)
         {
-            bc[n].setLo(0, BCType::foextrap); // first-order extrapolation     
-            bc[n].setLo(1, BCType::int_dir);  // external Dirichlet
-
-            bc[n].setHi(0, BCType::foextrap); // first-order extrapolation     
-            bc[n].setHi(1, BCType::int_dir);  // external Dirichlet
+            for (int d=0;d<amrex::SpaceDim ; d++)
+            {    
+                bc[n].setLo(d, BCType::int_dir);  
+                bc[n].setHi(d, BCType::int_dir);
         }
+    }
+
     /*
     Builds the laplacian operator to perform derivatives
     */
     LPInfo info;
-
-
-    info.setMetricTerm(true);
+    
+    //info.setMetricTerm(true);
     info.setMaxCoarseningLevel(0);
 
     MLPoisson linPoissonReal({geom}, {ba}, {dmInit}, info);
     MLPoisson linPoissonImag({geom}, {ba}, {dmInit}, info);
 
     //linPoissonReal.setNComp(nComp);
-
-    // order of stencil
-    int linop_maxorder = 2;
+    
     linPoissonReal.setMaxOrder(linop_maxorder);
     linPoissonImag.setMaxOrder(linop_maxorder);
 
     std::array<LinOpBCType,AMREX_SPACEDIM> bc_lo;
     std::array<LinOpBCType,AMREX_SPACEDIM> bc_hi;
 
-    
-    bc_lo[1]=LinOpBCType::Periodic;
-    bc_hi[1]=LinOpBCType::Periodic;
-
-    bc_lo[0]=LinOpBCType::Neumann;
-    bc_hi[0]=LinOpBCType::Neumann;
+    for (int d=0;d<amrex::SpaceDim;d++)
+        {
+        bc_lo[d]=LinOpBCType::Periodic;
+        bc_hi[d]=LinOpBCType::Periodic;
+        }
 
     linPoissonReal.setDomainBC(bc_lo, bc_hi);
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
-    RK4Stepper stepper_phi(false,Ncomp,Nghost);
+    RK4Stepper stepper_phi(true,Ncomp,Nghost);
     //eulerStepper stepper_phi(true);
     const Real* dx = geom.CellSize();
-
-
+    
     normalize(phi_real_old,phi_imag_old,geom);
-
+    
     WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
     WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
 
-    Real dt=1e-5;
+
+    Real dt=1e-3;
     linPoissonReal.setLevelBC(0,nullptr);
     linPoissonImag.setLevelBC(0,nullptr);
 
     int nBlocks=10000;
-    int stepsPerBlock=1000;
+    int stepsPerBlock=10;
 
     Real time=0;
     for (int i=0;i<nBlocks;i++)
@@ -224,9 +295,8 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
 
             WriteSingleLevelPlotfile(pltfile_real, phi_real_old, {"phi"}, geom, time, 0);
             WriteSingleLevelPlotfile(pltfile_imag, phi_imag_old, {"phi"}, geom, time, 0);
-
        }
-    }   
+    } 
 
     std::cout << "----------------------------------" << std::endl;
     std::cout << "End at time " << time << std::endl; 

@@ -1,2 +1,2 @@
-#define DIMENSIONS 2
+#define DIMENSIONS 3
 using Real=double;
