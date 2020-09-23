@@ -19,7 +19,7 @@ void fillMultiFab( MultiFab & fab  , const py::array_t<double> & values );
 
 /* Defines the model. 
 Setub the box,distribution mapping 
-Also builds the laplacian and gradient operators.
+Also builds the laplacian and grpadient operators.
 Defined only for a single level.
  */
 
@@ -37,7 +37,6 @@ public:
     auto & imagLaplacian() {return linPoissonImag;}
 
     auto & getGeometry() {return geom;}
-
 
     void fill( const py::array_t<double> & real, const py::array_t<double> & imag  );
 
@@ -72,10 +71,10 @@ public:
 #endif
 	 	
 }
-}
+    }
 
-
-
+   auto & getBoxArray() {return ba;}
+   auto & getDistributionMapping() {return dmInit;}
 
 private:
     BoxArray ba;

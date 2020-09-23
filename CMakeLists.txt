@@ -33,8 +33,8 @@ message(${CMAKE_SOURCE_DIR})
 include_directories(${MPI_INCLUDE_PATH} external/json/single_include external/pybind11_json/include)
 
 #set( CMAKE_PREFIX_PATH AMReX)
-set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp)
-
+set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp operators.cpp
+functional.cpp )
 
 add_library(gp_lib ${GP_FILES} )
 target_link_libraries(gp_lib PRIVATE amrex ${MPI_LIBRARIES} gfortran  )

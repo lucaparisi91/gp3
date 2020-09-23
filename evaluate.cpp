@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 
 
+
 #define LOOP( state , geom  ) \
 	{ \
 	const Real* dx = geom.CellSize(); \
@@ -23,6 +24,7 @@
 			 }\
 	} \
 	}
+
 
 
 void evaluate( 

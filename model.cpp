@@ -111,9 +111,7 @@ laplacianOrder(laplacianOrder_  ) ,Nghost(laplacianOrder_ + 1)  , Ncomp(Ncomp_)
 
     linPoissonReal.setLevelBC(0,nullptr);
     linPoissonImag.setLevelBC(0,nullptr);
-
-
-
+    
 
 }
 
