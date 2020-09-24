@@ -6,7 +6,8 @@
 #include <cmath>
 #include "operators.h"
 #include "functional.h"
-
+#include "run.h"
+/* 
 class modelFixture : public ::testing::Test 
 {
     protected :
@@ -168,4 +169,22 @@ TEST_F( modelFixture , harmonic)
 
     ENDLOOP
 
+} */
+
+TEST(initialization, fill)
+{
+    
+    auto settings = R"( 
+        { 
+        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] } } )"_json;
+    
+    auto [box , geom , dm] = createGeometry(settings["geometry"]);
+
+    int Ncomp = 1;
+    int Nghost = 2;
+    
+
+    MultiFab phi_real(box, dm, Ncomp, Nghost);
+
+     
 }

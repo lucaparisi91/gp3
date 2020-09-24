@@ -44,7 +44,6 @@ class functional
 {
 public:
     functional() : lap(NULL) {}
-    
     virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ );
 
     virtual void evaluate(

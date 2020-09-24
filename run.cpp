@@ -10,8 +10,7 @@ using Real = double;
 #include "timer.h"
 #include "stepper.h"
 #include "tools.h"
-
-
+#include <complex>
 using namespace amrex;
 
 inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;}
@@ -61,7 +60,7 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
     return norm2*2*M_PI*dx[0]*dx[1];
 }
 
-void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom)
+void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom, Real N=1)
 {
     /* Normalizes each component indipendently  */
     for (int i=0;i<phi_real.nComp();i++)
@@ -69,14 +68,110 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
             Real norm2=norm(phi_real,phi_imag,geom,i);
             std::cout << norm2 << std::endl;
 
-            phi_real.mult(1./std::sqrt(norm2),i,1);
-            phi_imag.mult(1./std::sqrt(norm2),i,1);
+            phi_real.mult( std::sqrt(N)/std::sqrt(norm2),i,1);
+            phi_imag.mult(std::sqrt(N)/std::sqrt(norm2),i,1);
     }
 }
 
 
 
 
+void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom)
+{
+    auto psi = initialCondition.unchecked<AMREX_SPACEDIM>();
+
+    LOOP(realState,geom)
+
+    data(i,j,k)=std::real( psi(i,j,k) );
+
+    ENDLOOP
+
+}
+
+
+
+void runTest(py::array_t<std::complex<Real> > initialCondition , const json_t & settings   )
+{
+    initializer::instance().init();
+    auto [ box, geom , dm] = createGeometry(settings["geometry"]);
+
+    int Ncomp = 1;
+    int order = settings["functional"]["order"];
+    int Nghost = order + 1;
+
+    harmonicFunctional func(1.);
+    func.define(geom,box,dm);
+    RK4Stepper stepper_phi(&func, true,Ncomp,Nghost);
+
+    MultiFab phi_real_old(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
+
+    MultiFab phi_real_new(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+    phi_imag_new=0.;
+    phi_real_new=0.;
+
+    phi_real_old=0.;
+    phi_imag_new=0.;
+
+    Real normalization = settings["normalization"].get<Real>();
+
+    fill(phi_real_old, phi_imag_old, initialCondition , geom);
+    normalize(phi_real_old,phi_imag_old,geom,1);
+
+    std::string pltfile_real_init = amrex::Concatenate("out/phi_real",0,5);
+    std::string pltfile_imag_init = amrex::Concatenate("out/phi_imag",0,5);
+
+
+    WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
+    WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
+
+
+    Real dt=settings["run"]["timeStep"].get<Real>();
+    
+    
+    int nBlocks=settings["run"]["nBlocks"].get<int>() ;
+    int stepsPerBlock=settings["run"]["stepsPerBlock"].get<int>() ;
+
+    
+    Real time=0;
+    for (int i=0;i<nBlocks;i++)
+    {
+        for (int j=0;j<stepsPerBlock;j++)
+        {
+            // evolution
+            stepper_phi.evolve(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old, time, dt);
+            // normalization
+            normalize(phi_real_new,phi_imag_new,geom,1);
+
+            
+            // swap old and new solutions
+            std::swap(phi_real_new,phi_real_old);
+            std::swap(phi_imag_new,phi_imag_old);
+
+            time+=dt;
+       }
+       // output 
+       {
+            std::cout << "----------------------------------" << std::endl;
+            std::cout << "Time: " << time << std::endl; 
+            std::cout << "Max Real: "<< phi_real_old.max(0) << "; Max Imag: "<< phi_imag_old.max(0)<<std::endl;
+            std::cout << "Min Real: "<< phi_real_old.min(0) << "; Min Imag: "<< phi_imag_old.min(0)<<std::endl;
+
+            std::string pltfile_real = amrex::Concatenate("out/phi_real",i+1,5);
+            std::string pltfile_imag = amrex::Concatenate("out/phi_imag",i+1,5);
+
+            WriteSingleLevelPlotfile(pltfile_real, phi_real_old, {"phi"}, geom, time, 0);
+            WriteSingleLevelPlotfile(pltfile_imag, phi_imag_old, {"phi"}, geom, time, 0);
+       }
+    } 
+
+    std::cout << "----------------------------------" << std::endl;
+    std::cout << "End at time " << time << std::endl; 
+
+
+}
 
 
 

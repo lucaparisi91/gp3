@@ -5,6 +5,7 @@ project(gp)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INSTALL_PREFIX /home/luca/source/GP3/install)
 set(DIM 3)
+set(CMAKE_CXX_STANDARD 17)
 
 
 add_subdirectory(external/pybind11)

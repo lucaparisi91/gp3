@@ -3,6 +3,8 @@
 #include "evaluate.h"
 #include "model.h"
 #include "tools.h"
+#include "pybind11_json/pybind11_json.hpp"
+
 
 py::array_t<double, py::array::f_style | py::array::forcecast> evaluatePython(py::array_t<double>  real, py::array_t<double>  imag ,  const geometry & geom )
 {
@@ -51,6 +53,7 @@ py::class_<geometry>(m, "geometry")
     .def_readwrite("symmetry", &geometry::symmetry);
 m.def("run", &run, "Run the simulation");
 m.def("evaluate",&evaluatePython, "Evaluate the rhs." );
+m.def("runTest", & runTest , "Run test");
 
 }
 

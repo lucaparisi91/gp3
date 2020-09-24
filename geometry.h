@@ -12,7 +12,6 @@ using Real = double;
 using RealArray = std::array<Real,DIMENSIONS>;
 using IntArray = std::array<size_t,DIMENSIONS>;
 
-
 class geometry
 {
 public:

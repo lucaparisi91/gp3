@@ -14,5 +14,10 @@
 		"imaginaryTime" : true
 	},
 	"normalization" : 1.0,
-	"components" : 1
+	"components" : 1 , 
+	"functional" : 
+	{
+		"label" : "harmonic",
+		"omega" : 1.0
+	}
 }

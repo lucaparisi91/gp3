@@ -1,10 +1,16 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 #include <AMReX_PlotFileUtil.H>
+#include <nlohmann/json.hpp>
+
+using json_t = nlohmann::json ;
 using namespace amrex;
+
 
 Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0);
 
+std::tuple< BoxArray , Geometry , DistributionMapping   >  
+createGeometry( const json_t & settings);
 
 
 class initializer

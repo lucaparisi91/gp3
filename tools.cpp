@@ -52,3 +52,44 @@ Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometr
 
     return norm2*dV;
 }
+
+
+
+
+
+std::tuple< BoxArray , Geometry , DistributionMapping   >  
+createGeometry( const json_t & settings)
+{
+    BoxArray ba;
+    Geometry geom;
+    Vector<int> is_periodic(AMREX_SPACEDIM,1);
+
+    std::array<size_t,AMREX_SPACEDIM> shape;
+    std::array<Real,AMREX_SPACEDIM> lower_edges;
+    std::array<Real,AMREX_SPACEDIM> higher_edges;
+
+    for (int i=0;i<AMREX_SPACEDIM;i++)
+    {
+        lower_edges[i]=settings["domain"][i][0].get<Real>();
+        higher_edges[i]=settings["domain"][i][1].get<Real>();
+        shape[i] = settings["shape"][i].get<int>();
+
+    }
+
+    IntVect dom_lo(AMREX_D_DECL(       0,        0,        0));
+    IntVect dom_hi(AMREX_D_DECL( shape[0]-1, shape[1]-1, shape[2]-1));
+    Box domain(dom_lo, dom_hi);
+    ba.define(domain);
+   //ba.maxSize(max_grid_size);
+
+    RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
+                         {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
+                        
+    int coord = 0;
+    geom.define(domain,&real_box,coord,is_periodic.data());
+    
+    DistributionMapping dm(ba);
+
+    return {ba, geom, dm} ;
+
+}
