@@ -49,7 +49,7 @@ public:
 
     virtual void evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
-	MultiFab & state_old_real,  MultiFab & state_old_imag ) = 0;
+	MultiFab & state_old_real,  MultiFab & state_old_imag , Real time=0) = 0;
 
 
 
@@ -78,8 +78,8 @@ class harmonicFunctional : public functional
 
     virtual void evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
-	MultiFab & state_old_real,  MultiFab & state_old_imag ) ;
-
+	MultiFab & state_old_real,  MultiFab & state_old_imag, Real time =0 ) ;
+    
 
     private:
 

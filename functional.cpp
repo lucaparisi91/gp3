@@ -10,7 +10,6 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
     lap->define(geom_,box_,dm_);
 
 
-
 };
 
 functional::~functional()
@@ -21,7 +20,7 @@ functional::~functional()
 
  void harmonicFunctional::evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
-	MultiFab & state_old_real,  MultiFab & state_old_imag )
+	MultiFab & state_old_real,  MultiFab & state_old_imag , Real time)
     {
         auto & lap = getLaplacian();
 

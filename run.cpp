@@ -201,7 +201,11 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     linPoissonReal.setDomainBC(bc_lo, bc_hi);
     linPoissonImag.setDomainBC(bc_lo, bc_hi);
 
-    RK4Stepper stepper_phi(true,Ncomp,Nghost);
+    harmonicFunctional func(1.);
+    func.define(geom,ba,dmInit);
+
+
+    RK4Stepper stepper_phi(&func, true,Ncomp,Nghost);
     //eulerStepper stepper_phi(true);
     const Real* dx = geom.CellSize();
     
@@ -224,7 +228,7 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
         for (int j=0;j<stepsPerBlock;j++)
         {
             // evolution
-            stepper_phi.evolve(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,linPoissonReal,linPoissonImag,geom, bc, time, dt);
+            stepper_phi.evolve(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old, time, dt);
             // normalization
             normalize(phi_real_new,phi_imag_new,geom);
             

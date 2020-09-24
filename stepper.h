@@ -4,32 +4,44 @@
 #include <AMReX_MultiFabUtil.H>
 #include <AMReX_MLMG.H>
 #include "evaluate.h"
+#include "functional.h"
+
 using namespace amrex;
 
- class stepper
+class stepper
  {
+
+	 
 public:
+
+	stepper( functional * func_) : _func(func_) {}
+
 	virtual void evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
-	MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,
-	 Geometry & geom ,    const Vector<BCRec> & bc,
 	 Real time, Real dt)=0;
+
+	auto & getFunctional() {return *_func;} 
+
+private:
+
+	 functional * _func;
  };
+
 
  class eulerStepper : public stepper
  {
  public:
+ 	eulerStepper(functional * func_,bool isImaginaryTime_) : isImaginaryTime(isImaginaryTime_) , stepper::stepper(func_){}
 
- 	eulerStepper(bool isImaginaryTime_) : isImaginaryTime(isImaginaryTime_) {}
+
 	virtual void evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
-	MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,
-	 Geometry & geom ,    const Vector<BCRec> & bc,
 	 Real time, Real dt);
  private:
  	bool isImaginaryTime;
+
  };
 
 
@@ -37,27 +49,25 @@ public:
  {
  	/* Implements the 4th order Runje-Kutta stepper*/
  public:
- 	RK4Stepper(bool isImaginaryTime_,int nComponents_,int ghosts_) : 
-		ghosts(AMREX_D_DECL(ghosts_,ghosts_,ghosts_)),nComponents(nComponents_),isImaginaryTime(isImaginaryTime_) {
-
-		}
+ 	RK4Stepper(functional * func_  ,bool isImaginaryTime_,int nComponents_,int ghosts_);
+	 
  	virtual void evolve( 
  	MultiFab & state_new_real, MultiFab & state_new_imag,
  	MultiFab & state_old_real,  MultiFab & state_old_imag,
- 	MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag ,
- 	 Geometry & geom ,    const Vector<BCRec> & bc,
  	 Real time, Real dt);
 private:
+	void evaluate( 
+			MultiFab & state_new_real, MultiFab & state_new_imag,
+			MultiFab & state_old_real,  MultiFab & state_old_imag,
+			Real time );
+
 	MultiFab tmp_real;
 	MultiFab tmp_imag;
 	MultiFab tmp2_real;
 	MultiFab tmp2_imag;
 	int nComponents;
 	amrex::IntVect ghosts;
-	void evaluate_complex_( 
-	MultiFab & state_new_real, MultiFab & state_new_imag,
-	MultiFab & state_old_real,  MultiFab & state_old_imag,
-	Real time, Geometry & geom ,  MLPoisson & laplacianOperatorReal, MLPoisson & laplacianOperatorImag );
+	
 	bool isImaginaryTime;
  };
 

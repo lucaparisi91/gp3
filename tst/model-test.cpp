@@ -19,7 +19,7 @@ class modelFixture : public ::testing::Test
 
         geom->lower_edges = lower_edges;
         geom->higher_edges = higher_edges;
-
+        
         int order = 2;
 
 

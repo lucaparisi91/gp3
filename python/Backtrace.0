@@ -8,55 +8,47 @@
             readelf -wl my_exefile | grep my_line_address'
     to find out the offset for that line.
 
- 0: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x45) [0x7f20b19641a5]
+ 0: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x45) [0x7f88c5e91465]
 
- 1: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x362) [0x7f20b1965fa2]
+ 1: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x362) [0x7f88c5e93262]
 
- 2: /lib/x86_64-linux-gnu/libc.so.6(+0x46210) [0x7f20b2bea210]
+ 2: /lib/x86_64-linux-gnu/libc.so.6(+0x46210) [0x7f88c711a210]
 
- 3: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZNK5amrex9MLPoisson6FapplyEiiRNS_8MultiFabERKS1_+0x5a9) [0x7f20b196bc79]
+ 3: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex8MultiFab5SaxpyERS0_dRKS0_iiiRKNS_7IntVectE+0x3e5) [0x7f88c5e53795]
 
- 4: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11MLCellLinOp16solutionResidualEiRNS_8MultiFabES2_RKS1_PS3_+0xac) [0x7f20b1981b0c]
+ 4: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper6evolveERN5amrex8MultiFabES2_S2_S2_dd+0x3d7) [0x7f88c5f00117]
 
- 5: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex4MLMG5applyERKNS_6VectorIPNS_8MultiFabESaIS3_EEES7_+0x515) [0x7f20b19df495]
+ 5: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x1ac738) [0x7f88c5efe738]
 
- 6: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_Z8evaluateRN5amrex8MultiFabES1_S1_S1_dRNS_8GeometryERNS_9MLPoissonES5_+0x12f) [0x7f20b19d34ef]
+ 6: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x670ef) [0x7f88c5db90ef]
 
- 7: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper17evaluate_complex_ERN5amrex8MultiFabES2_S2_S2_dRNS0_8GeometryERNS0_9MLPoissonES6_+0x32) [0x7f20b19d2a82]
+ 7: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x6cfb1) [0x7f88c5dbefb1]
 
- 8: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper6evolveERN5amrex8MultiFabES2_S2_S2_RNS0_9MLPoissonES4_RNS0_8GeometryERKNS0_6VectorINS0_5BCRecESaIS8_EEEdd+0x71b) [0x7f20b19d31db]
+ 8: python(PyCFunction_Call+0x56) [0x55f0d38d0f76]
 
- 9: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x1ab420) [0x7f20b19d1420]
+ 9: python(_PyObject_MakeTpCall+0x22f) [0x55f0d388e85f]
 
-10: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x65e2f) [0x7f20b188be2f]
+10: python(_PyEval_EvalFrameDefault+0x4596) [0x55f0d3915f56]
 
-11: /home/luca/source/GP3/python/gp_c.cpython-38-x86_64-linux-gnu.so(+0x6bcf1) [0x7f20b1891cf1]
+11: python(_PyEval_EvalCodeWithName+0x2d2) [0x55f0d38dba92]
 
-12: python(PyCFunction_Call+0x56) [0x559e1682cf76]
+12: python(PyEval_EvalCodeEx+0x44) [0x55f0d38dc754]
 
-13: python(_PyObject_MakeTpCall+0x22f) [0x559e167ea85f]
+13: python(PyEval_EvalCode+0x1c) [0x55f0d396aedc]
 
-14: python(_PyEval_EvalFrameDefault+0x4596) [0x559e16871f56]
+14: python(+0x219f84) [0x55f0d396af84]
 
-15: python(_PyEval_EvalCodeWithName+0x2d2) [0x559e16837a92]
+15: python(+0x24c1f4) [0x55f0d399d1f4]
 
-16: python(PyEval_EvalCodeEx+0x44) [0x559e16838754]
+16: python(PyRun_FileExFlags+0xa1) [0x55f0d38656e1]
 
-17: python(PyEval_EvalCode+0x1c) [0x559e168c6edc]
+17: python(PyRun_SimpleFileExFlags+0x3b4) [0x55f0d3865ac6]
 
-18: python(+0x219f84) [0x559e168c6f84]
+18: python(+0x11598b) [0x55f0d386698b]
 
-19: python(+0x24c1f4) [0x559e168f91f4]
+19: python(Py_BytesMain+0x39) [0x55f0d399fd19]
 
-20: python(PyRun_FileExFlags+0xa1) [0x559e167c16e1]
+20: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3) [0x7f88c70fb0b3]
 
-21: python(PyRun_SimpleFileExFlags+0x3b4) [0x559e167c1ac6]
-
-22: python(+0x11598b) [0x559e167c298b]
-
-23: python(Py_BytesMain+0x39) [0x559e168fbd19]
-
-24: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3) [0x7f20b2bcb0b3]
-
-25: python(+0x1dee93) [0x559e1688be93]
+21: python(+0x1dee93) [0x55f0d392fe93]
 
