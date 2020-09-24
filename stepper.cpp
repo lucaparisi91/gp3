@@ -1,6 +1,5 @@
 #include "stepper.h"
 
-
 void eulerStepper::evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
@@ -8,7 +7,7 @@ void eulerStepper::evolve(
 {
 	//exchange boundaries conditions
 	//state_old_real.FillBoundary(geom.periodicity());
-	
+
 	//state_old_real.setDomainBndry(0, 0, 1, geom);
 	//state_old_imag.setDomainBndry(0, 0, 1, geom);
 
@@ -129,7 +128,7 @@ RK4Stepper::RK4Stepper(functional * func_  ,bool isImaginaryTime_,int nComponent
 		auto & box = getFunctional().getBoxArray();
 		auto & dm = getFunctional().getDistributionMapping();
 		auto & geom = getFunctional().getGeometry();
-		
+
 		tmp_real.define(box, dm, nComponents, ghosts[0]);
 		tmp2_real.define(box, dm , nComponents, ghosts[0]);
 		tmp_imag.define( box, dm , nComponents, ghosts[0]);

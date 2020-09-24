@@ -1,0 +1,18 @@
+{	
+  "geometry" : 
+	{
+		"box" : [ [-5,5] , [-5,5] , [-5,5] ],
+		"shape" : [128,128,128],
+		"symmetry" : null
+	},
+	"run" : 
+	{
+		"label" : "gpGroundState",
+		"stepsPerBlock" : 100,
+		"timeStep" : 1e-3,
+		"stepper" : "RK4",
+		"imaginaryTime" : true
+	},
+	"normalization" : 1.0,
+	"components" : 1
+}

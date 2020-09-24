@@ -61,9 +61,6 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
     return norm2*2*M_PI*dx[0]*dx[1];
 }
 
-
-
-
 void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom)
 {
     /* Normalizes each component indipendently  */
