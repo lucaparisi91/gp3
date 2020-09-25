@@ -20,14 +20,37 @@ class testGeometry(unittest.TestCase):
 class testModel(unittest.TestCase):
 
     def test_evaluatePython(self):
-        shape=(128,128,128)
-        domain=((-5,5) , (-5,5) ,(-5,5) )
-        geo = gp.geometry(shape,domain)
 
-        y= np.exp( - geo.positions(0)**2 - geo.positions(1)**2 - geo.positions(2)**2 )
+        
+        settings = { "geometry" : 
+            {
+                "shape" : [128,128,128],
+                "domain" : [[-5,5],[-5,5],[-5,5]]
+            },
 
-        gp_c.evaluate(y,y*0,geo)
+            "functional" : 
+	        {
+		        "name" : "harmonic",
+		        "omega" : 1.0 , 
+                "order" : 2
+	        }
 
+        }
+
+        geo = gp.geometry(**settings["geometry"])
+        r2 =  geo.positions(0)**2 + geo.positions(1)**2 + geo.positions(2)**2 
+
+        alpha=1.
+        y= np.exp( - alpha * r2   ) + 0*1j
+
+        hy= y * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) ) 
+
+        y2=gp_c.evaluate(y,settings)
+
+
+        self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-2 )
+
+        
 
 class testRun(unittest.TestCase):
 
@@ -51,7 +74,7 @@ class testRun(unittest.TestCase):
 	        "components" : 1 , 
 	        "functional" : 
 	        {
-		        "label" : "harmonic",
+		        "name" : "harmonic",
 		        "omega" : 1.0 , 
                 "order" : 2
 	        }

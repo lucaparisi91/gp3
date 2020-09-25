@@ -12,7 +12,7 @@ using Real = double;
 #include "tools.h"
 #include <complex>
 using namespace amrex;
-
+#include "initializer.h"
 
 
 
@@ -100,19 +100,6 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
 }
 
 
-
-
-void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom)
-{
-    auto psi = initialCondition.unchecked<AMREX_SPACEDIM>();
-
-    LOOP3D(realState,geom)
-
-    data(i,j,k)=std::real( psi(i,j,k) );
-
-    ENDLOOP3D
-
-}
 
 
 
@@ -272,7 +259,7 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
 
             fillBox(bx,data_real,initialCondition_real);
             fillBox(bx,data_imag,initialCondition_imag);
-
+            
         }
 
     std::string pltfile_real_init = amrex::Concatenate("out/phi_real",0,5);

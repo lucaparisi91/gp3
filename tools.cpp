@@ -1,6 +1,5 @@
 #include "tools.h"
 
-initializer *initializer::s_instance = 0;
 
 Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
 {
@@ -91,5 +90,25 @@ createGeometry( const json_t & settings)
     DistributionMapping dm(ba);
 
     return {ba, geom, dm} ;
+
+}
+
+void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom)
+{
+    auto psi = initialCondition.unchecked<AMREX_SPACEDIM>();
+
+    LOOP3D(realState,geom)
+
+    data(i,j,k)=std::real( psi(i,j,k) );
+
+    ENDLOOP3D
+
+    LOOP3D(imagState,geom)
+
+    data(i,j,k)=std::imag( psi(i,j,k) );
+
+    ENDLOOP3D
+
+
 
 }

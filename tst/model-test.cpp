@@ -8,7 +8,7 @@
 #include "functional.h"
 #include "run.h"
 #include "functionalFactory.h"
-
+#include "initializer.h"
 
 TEST(initialization, createGeometry)
 {
@@ -22,10 +22,10 @@ TEST(initialization, createGeometry)
     int Ncomp = 1;
     int Nghost = 2;
 
-
     MultiFab phi_real(box, dm, Ncomp, Nghost);
 
 }
+
 
 TEST(initialization, harmonic)
 {
@@ -47,20 +47,17 @@ TEST(initialization, harmonic)
 
     phi_imag_old=0;
 
-    functionalFactory facFunc;
-    
-    facFunc.registerFunctional<harmonicFunctional>();
-
      auto functionalSettings = R"( 
         {
+            "name" : "harmonic",
             "omega" : 1.0 
          } )"_json;
    
-    auto func = facFunc.create("harmonic",functionalSettings);
+    auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
 
     func->define(geom,box,dm);
 
-    Real alpha=0.87;
+    Real alpha=1;
 
     fill(phi_real_old,geom, [alpha](Real x, Real y, Real z) {return exp(- alpha *(x*x + y*y + z*z));}  ) ;
 
@@ -90,7 +87,6 @@ TEST(initialization, harmonic)
      ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
 
     ENDLOOP3D
-
 
 
     delete func;

@@ -1,3 +1,6 @@
+#ifndef FUNCTIONAL_FACTORY_H
+#define FUNCTIONAL_FACTORY_H
+
 
 #include "abstractFactory.h"
 
@@ -27,6 +30,14 @@ public:
   {
     registerType( func_t::name()  , & (createFunctional<func_t> ) );
   }
+ 
+ functional* create(const json_t & j) 
+ {
+    return abstractFactory_t::create(j["name"].get<std::string>(),j);
 
+ }
 
 };
+
+
+#endif

@@ -4,42 +4,93 @@
 #include "model.h"
 #include "tools.h"
 #include "pybind11_json/pybind11_json.hpp"
+#include "initializer.h"
+#include "functional.h"
 
-
-py::array_t<double, py::array::f_style | py::array::forcecast> evaluatePython(py::array_t<double>  real, py::array_t<double>  imag ,  const geometry & geom )
+auto  toPyArray(MultiFab & real, MultiFab & imag, Geometry & geom)
 {
-		 initializer::instance().init();
+    auto shape = geom.Domain().size();
+    size_t size=1;
 
-         int order = 4;
+    for (int d=0;d<AMREX_SPACEDIM;d++)
+    {
+        size*=shape[d];
+    }
 
-		 model m(geom, order , 1);
-         model m2(geom, order , 1);
-         
-		 m.fill(real,imag);
-         
-         evaluate(m2.real(), m2.imag() ,
-            m.real() , m.imag() , 
-            0 , m.getGeometry() , m.realLaplacian() , m.imagLaplacian() 
-            );
-     
+    std::cout<< size << std::endl;
 
-         py::array_t<double> values( geom.size() );
-         size_t t =0;
-         double * p = (double * )(values.request().ptr );
+    using return_type =  py::array_t<std::complex<double> , py::array::f_style | py::array::forcecast  > ;
 
-         LOOP3D(m2.real() , m2.getGeometry() )
 
-         *(p + t ) = data(i,j,k,0);
+    return_type values( size );
+
+    values.resize(  {shape[0] , shape[1] , shape[2]   });
+
+    std::complex<double> * p = (std::complex<double> * )(values.request().ptr );
+    
+    size_t t=0;
+    LOOP3D( real , geom )
+
+         *(p + t ) = data(i,j,k,0) + 1i*0.0;
          t++;
-         ENDLOOP3D
-         
-        values.resize( geom.shape );
+   ENDLOOP3D
 
-         
-        return values;
+   t=0;
+     LOOP3D( imag , geom )
+         *(p + t ) += data(i,j,k,0) *1i;
+         t++;
+   ENDLOOP3D
 
-		 
+
+
+
+
+   return values;
+
+
 }
+
+auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_t & settings  )
+{
+	initializer::instance().init();
+
+    auto [ box, geom , dm] = createGeometry(settings["geometry"]);
+
+    
+    int Ncomp = 1;
+    int order = settings["functional"]["order"];
+    int Nghost = order + 1;
+
+    MultiFab phi_real_old(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
+
+    MultiFab phi_real_new(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+    phi_real_old=0.;
+    phi_imag_old=0.;
+
+    phi_real_new=0.;
+    phi_imag_new=0.;
+
+    fill(phi_real_old, phi_imag_old, initialCondition , geom);
+    
+   
+
+    auto func = initializer::instance().getFunctionalFactory().create(settings["functional"]);
+
+    
+    func->define(geom,box,dm);
+
+
+    func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
+
+    delete func;
+
+
+    return toPyArray(phi_real_new, phi_imag_new,geom);
+
+} 
 
 
 PYBIND11_MODULE(gp_c,m) {
@@ -54,7 +105,6 @@ py::class_<geometry>(m, "geometry")
 m.def("run", &run, "Run the simulation");
 m.def("evaluate",&evaluatePython, "Evaluate the rhs." );
 m.def("runTest", & runTest , "Run test");
-
 }
 
 

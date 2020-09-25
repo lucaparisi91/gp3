@@ -5,7 +5,6 @@ project(gp)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INSTALL_PREFIX /home/luca/source/GP3/install)
 set(DIM 3)
-set(CMAKE_CXX_STANDARD 17)
 
 
 add_subdirectory(external/pybind11)
@@ -28,14 +27,18 @@ find_package(PythonLibs)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 
-set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS} -Wfatal-errors)
+set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}   )
 set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}  )
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wfatal-errors -std=gnu++17")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wfatal-errors -std=gnu++17")
+
+
 message(${CMAKE_SOURCE_DIR})
 include_directories(${MPI_INCLUDE_PATH} external/json/single_include external/pybind11_json/include)
 
 #set( CMAKE_PREFIX_PATH AMReX)
 set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp operators.cpp
-functional.cpp )
+functional.cpp initializer.cpp)
 
 add_library(gp_lib ${GP_FILES} )
 target_link_libraries(gp_lib PRIVATE amrex ${MPI_LIBRARIES} gfortran  )

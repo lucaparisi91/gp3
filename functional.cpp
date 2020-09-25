@@ -41,6 +41,10 @@ functional::~functional()
 		phi_new_real(i,j,k,0)+= tmp*phi_old_real(i,j,k,0);
 		phi_new_imag(i,j,k,0)+= tmp*phi_old_imag(i,j,k,0);
 
+        //if (phi_new_real(i,j,k) > 4. )
+        //{
+        //    std::cout <<  phi_new_real(i,j,k) << std::endl;
+        //}
        END_EVALUATION_LOOP3D
 
 

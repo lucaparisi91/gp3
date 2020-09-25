@@ -4,7 +4,9 @@
 #include <nlohmann/json.hpp>
 using json_t = nlohmann::json ;
 using namespace amrex;
-
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+namespace py = pybind11;
 
 
 #define LOOP3D( state , geom  ) \
@@ -52,35 +54,7 @@ void fill( MultiFab & state, Geometry & geom,  const evaluator_t & evaluator )
 
 }
 
-class initializer
-{
-    bool isInitialized;
-    static initializer *s_instance;
-    initializer() : isInitialized(false ) {}
-  
+void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom);
 
-  public:
-    void init()
-    {
-        if (!isInitialized)
-        {
-            amrex::Initialize(MPI_COMM_WORLD);
-            isInitialized = true;
-        }
-    }
-
-
-
-    static initializer  & instance()
-    {
-        if (!s_instance)
-          s_instance = new initializer;
-        return *s_instance;
-    }
-};
-
-// Allocating and initializing GlobalClass's
-// static data member.  The pointer is being
-// allocated - not the object inself.
 
 #endif
