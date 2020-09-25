@@ -27,11 +27,11 @@ py::array_t<double, py::array::f_style | py::array::forcecast> evaluatePython(py
          size_t t =0;
          double * p = (double * )(values.request().ptr );
 
-         LOOP(m2.real() , m2.getGeometry() )
+         LOOP3D(m2.real() , m2.getGeometry() )
 
          *(p + t ) = data(i,j,k,0);
          t++;
-         ENDLOOP
+         ENDLOOP3D
          
         values.resize( geom.shape );
 

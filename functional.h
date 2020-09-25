@@ -74,12 +74,15 @@ class harmonicFunctional : public functional
 
     harmonicFunctional(Real omega = 1) : prefactor(0.5 * omega*omega) {};
 
+	harmonicFunctional(const json_t & j ) : harmonicFunctional( j["omega"].get<Real>() ) {}
+
 
     virtual void evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag, Real time =0 ) ;
-    
 
+	static std::string name() {return "harmonic";}
+	
     private:
 
     Real prefactor;
