@@ -13,9 +13,6 @@ add_subdirectory(external/pybind11_json)
 add_subdirectory(external/googletest)
 
 
-	           
-
-
 
 
 #include_directories(AMReX/include)

@@ -160,7 +160,7 @@ void runTest(py::array_t<std::complex<Real> > initialCondition , const json_t & 
 
     std::cout << "----------------------------------" << std::endl;
     std::cout << "End at time " << time << std::endl; 
-    
+
 }
 
 void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCondition_imag,const geometry & geomInfo)
@@ -173,7 +173,6 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
     // AMREX_SPACEDIM: number of dimensions
     int n_cell, max_grid_size, maxSteps, plot_int;
     Vector<int> is_periodic(AMREX_SPACEDIM,1);  // periodic in all direction by default
-
 
     // make BoxArray and Geometry
     BoxArray ba;

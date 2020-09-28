@@ -1,5 +1,5 @@
 #include "tools.h"
-
+#include "gpExceptions.h"
 
 Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
 {
@@ -66,6 +66,9 @@ createGeometry( const json_t & settings)
     std::array<size_t,AMREX_SPACEDIM> shape;
     std::array<Real,AMREX_SPACEDIM> lower_edges;
     std::array<Real,AMREX_SPACEDIM> higher_edges;
+    
+    std::string coordinates = settings["coordinates"].get<std::string>();
+
 
     for (int i=0;i<AMREX_SPACEDIM;i++)
     {
@@ -85,8 +88,26 @@ createGeometry( const json_t & settings)
                          {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
                         
     int coord = 0;
+
+    if (coordinates == "cartesian")
+    {
+        coord=0;
+    }
+    else if (coordinates == "spherical")
+    {
+        coord=2;
+
+        is_periodic[0]=0;
+
+
+    }
+    else
+    {
+        throw missingImplementation("Unkown coordinates :" + coordinates );
+    }
+
     geom.define(domain,&real_box,coord,is_periodic.data());
-    
+
     DistributionMapping dm(ba);
 
     return {ba, geom, dm} ;
