@@ -3,11 +3,9 @@
 #include "operators.h"
 
 
+#if AMREX_SPACEDIM == 3
 
-
-
-
-#define EVALUATION_LOOP3D( state_new_real, state_new_imag, state_old_real, state_old_imag ,  geom  ) { \
+#define EVALUATION_LOOP( state_new_real, state_new_imag, state_old_real, state_old_imag ,  geom  ) { \
 	const Real* dx = geom.CellSize(); \
 	const Real* prob_lo = geom.ProbLo(); \
 	for ( MFIter mfi(state_new_real); mfi.isValid(); ++mfi ) \
@@ -25,20 +23,43 @@
 	     	{ 
 
 
-
-#define END_EVALUATION_LOOP3D }\
+#define END_EVALUATION_LOOP }\
 			 }\
 			 }
 
+#endif
 
 
 
 
 
 
+#if AMREX_SPACEDIM == 1
+
+#define EVALUATION_LOOP( state_new_real, state_new_imag, state_old_real, state_old_imag ,  geom  ) { \
+	const Real* dx = geom.CellSize(); \
+	const Real* prob_lo = geom.ProbLo(); \
+	for ( MFIter mfi(state_new_real); mfi.isValid(); ++mfi ) \
+	{ \
+	    const Box& bx = mfi.validbox(); \
+	    const int* lo = bx.loVect(); \
+	    const int *hi= bx.hiVect(); \
+		Array4< const Real> const & phi_old_real = state_old_real[mfi].const_array(); \
+	    Array4< Real> const & phi_new_real = state_new_real[mfi].array(); \
+	    Array4< const Real> const & phi_old_imag =  state_old_imag[mfi].const_array();\
+	    Array4< Real> const & phi_new_imag = state_new_imag[mfi].array(); \
+		const int j = 0; \
+		const int k = 0; \
+	     		for (int i=lo[0];i<=hi[0];i++) \
+	     	{ 
 
 
 
+#define END_EVALUATION_LOOP }\
+			 }\
+			 }
+
+#endif
 
 class functional
 {

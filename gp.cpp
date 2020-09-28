@@ -24,26 +24,23 @@ auto  toPyArray(MultiFab & real, MultiFab & imag, Geometry & geom)
 
     return_type values( size );
 
-    values.resize(  {shape[0] , shape[1] , shape[2]   });
+    values.resize(  {AMREX_D_DECL( shape[0] , shape[1] , shape[2]  ) });
 
     std::complex<double> * p = (std::complex<double> * )(values.request().ptr );
     
     size_t t=0;
-    LOOP3D( real , geom )
+    LOOP( real , geom )
 
-         *(p + t ) = data(i,j,k,0) + 1i*0.0;
+         *(p + t ) = data (  i, j, k,0) + 1i*0.0;
          t++;
-   ENDLOOP3D
+   ENDLOOP
 
    t=0;
-     LOOP3D( imag , geom )
+
+    LOOP( imag , geom )
          *(p + t ) += data(i,j,k,0) *1i;
          t++;
-   ENDLOOP3D
-
-
-
-
+   ENDLOOP
 
    return values;
 
@@ -74,8 +71,6 @@ auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_
     phi_imag_new=0.;
 
     fill(phi_real_old, phi_imag_old, initialCondition , geom);
-    
-   
 
     auto func = initializer::instance().getFunctionalFactory().create(settings["functional"]);
 
@@ -92,11 +87,13 @@ auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_
 
 } 
 
+#define _MODULE_NAME_(n) gp##n ## D_c
+#define MODULE_NAME(n) _MODULE_NAME_(n)
 
-PYBIND11_MODULE(gp_c,m) {
+PYBIND11_MODULE( MODULE_NAME(AMREX_SPACEDIM)   ,m) {
 m.doc() = "GP simulation python binding"; // optional module docstring
 py::class_<geometry>(m, "geometry")
-    .def(py::init<std::array<size_t,DIMENSIONS> >())
+    .def(py::init<std::array<size_t,AMREX_SPACEDIM> >())
     .def_readwrite("shape", &geometry::shape)
     .def_readwrite("lower_edges", &geometry::lower_edges)
     .def_readwrite("higher_edges", &geometry::higher_edges)
@@ -106,5 +103,3 @@ m.def("run", &run, "Run the simulation");
 m.def("evaluate",&evaluatePython, "Evaluate the rhs." );
 m.def("runTest", & runTest , "Run test");
 }
-
-

@@ -33,7 +33,6 @@ void amrexLaplacianOperator::define (Geometry & geom_ , BoxArray & ba_ , Distrib
     
     linPoisson.setMaxOrder(order);
 
-
     std::array<LinOpBCType,AMREX_SPACEDIM> bc_lo;
     std::array<LinOpBCType,AMREX_SPACEDIM> bc_hi;
 

@@ -29,23 +29,30 @@ functional::~functional()
 
         auto & geom = getGeometry();
 
-       EVALUATION_LOOP3D(state_new_real,state_new_imag,state_old_real,state_old_imag, getGeometry())
+       EVALUATION_LOOP(state_new_real,state_new_imag,state_old_real,state_old_imag, getGeometry())
 
-       phi_new_real(i,j,k,0) *= -0.5 ;
-	   phi_new_imag(i,j,k,0) *= -0.5 ;
 
-	    auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
-	    auto y= prob_lo[1] + (j + 0.5) * dx[1];
-	   	auto z= prob_lo[2] + (k + 0.5) * dx[2];
+       phi_new_real(   i,j,k,0) *= -0.5 ;
+	   phi_new_imag(  i,j,k,0) *= -0.5 ;
+
+
+	    auto [ AMREX_D_DECL( x , y , z) ] = std::tuple(AMREX_D_DECL( prob_lo[0] +  (i + 0.5) * dx[0] ,
+	         prob_lo[1] + (j + 0.5) * dx[1] , 
+	   	    prob_lo[2] + (k + 0.5) * dx[2] ) );
+        
+        #if AMREX_SPACEDIM == 3
         Real tmp =   0.5 *( x*x + y*y + z*z);
-		phi_new_real(i,j,k,0)+= tmp*phi_old_real(i,j,k,0);
-		phi_new_imag(i,j,k,0)+= tmp*phi_old_imag(i,j,k,0);
+        #endif
 
-        //if (phi_new_real(i,j,k) > 4. )
-        //{
-        //    std::cout <<  phi_new_real(i,j,k) << std::endl;
-        //}
-       END_EVALUATION_LOOP3D
+        #if AMREX_SPACEDIM == 1
+        Real tmp =   0.5 *( x*x);
+        #endif
+    
+		phi_new_real(  i,j,k,0)+= tmp*phi_old_real(i,j,k,0);
+		phi_new_imag( i,j,k,0)+= tmp*phi_old_imag( i,j,k,0);
+
+
+       END_EVALUATION_LOOP
 
 
 

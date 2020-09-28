@@ -1,6 +1,6 @@
 import gp
 import unittest 
-import gp_c
+import gp3D_c
 import numpy as np
 
 class testGeometry(unittest.TestCase):
@@ -45,15 +45,45 @@ class testModel(unittest.TestCase):
 
         hy= y * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) ) 
 
-        y2=gp_c.evaluate(y,settings)
+        y2=gp3D_c.evaluate(y,settings)
 
 
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-2 )
 
+def test_harmonic1d(self):
+
         
+        settings = { "geometry" : 
+            {
+                "shape" : [128],
+                "domain" : [[-5,5] ]
+            },
+
+            "functional" : 
+	        {
+		        "name" : "harmonic",
+		        "omega" : 1.0 , 
+                "order" : 2
+	        }
+
+        }
+
+        geo = gp.geometry(**settings["geometry"])
+        r2 =  geo.positions(0)**2
+
+        alpha=1.
+        y= np.exp( - alpha * r2   ) + 0*1j
+
+        hy= y * ( alpha  + r2 * (-2*alpha*alpha + 0.5 ) ) 
+
+        y2=gp3D_c.evaluate(y,settings)
+
+        self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-2 )
+
+
 
 class testRun(unittest.TestCase):
-
+    
     def test_initRun(self):
         settings = {	
             "geometry" : 
@@ -86,7 +116,7 @@ class testRun(unittest.TestCase):
         alpha = 1
         y+= np.exp(-alpha* ( geo.positions(0)**2 + geo.positions(1)**2 + geo.positions(2)**2) )
 
-        gp_c.runTest(y, settings)
+        gp3D_c.runTest(y, settings)
 
 
 if __name__ == "__main__":

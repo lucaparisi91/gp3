@@ -16,28 +16,6 @@ using namespace amrex;
 
 
 
-#define LOOP3D( state , geom  ) \
-	{ \
-	const Real* dx = geom.CellSize(); \
-	const Real* prob_lo = geom.ProbLo(); \
-	for ( MFIter mfi(state); mfi.isValid(); ++mfi ) \
-	{ \
-	    const Box& bx = mfi.validbox(); \
-	    const int* lo = bx.loVect(); \
-	    const int *hi= bx.hiVect(); \
-	    Array4< Real> const & data = state[mfi].array();\
-		for (int k=lo[2];k<=hi[2];k++) \
-	 		for (int j=lo[1];j<=hi[1];j++) \
-	     		for (int i=lo[0];i<=hi[0];i++) \
-	     	{ \
-
-#define ENDLOOP3D \
-			 }\
-	} \
-	} 
-
-
-
 
 inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;}
 
@@ -182,11 +160,8 @@ void runTest(py::array_t<std::complex<Real> > initialCondition , const json_t & 
 
     std::cout << "----------------------------------" << std::endl;
     std::cout << "End at time " << time << std::endl; 
-
-
+    
 }
-
-
 
 void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCondition_imag,const geometry & geomInfo)
 {	
@@ -248,7 +223,6 @@ void run(py::array_t<double> initialCondition_real,py::array_t<double> initialCo
 
     phi_real_old=0.;
     phi_imag_new=0.;
-
 
     for (MFIter mfi(phi_real_new); mfi.isValid(); ++mfi)
          {

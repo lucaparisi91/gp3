@@ -1,4 +1,3 @@
-import gp_c
 import numpy as np
 import yt
 from math import *
@@ -9,11 +8,9 @@ import io
 import os
 import sys
 
-
-class geometry(gp_c.geometry):
+class geometry:
 	def __init__(self,shape,domain,symmetry="none"):
-
-		super().__init__(shape)
+		self.shape=shape
 
 		self.lower_edges= [bound[0] for bound in domain]
 		self.higher_edges= [bound[1] for bound in domain]

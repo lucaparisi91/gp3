@@ -97,17 +97,31 @@ void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<R
 {
     auto psi = initialCondition.unchecked<AMREX_SPACEDIM>();
 
-    LOOP3D(realState,geom)
+    LOOP(realState,geom)
 
-    data(i,j,k)=std::real( psi(i,j,k) );
+#if AMREX_SPACEDIM == 3
+       data(i,j,k)=std::real( psi(i,j,k) );
+#endif
 
-    ENDLOOP3D
+#if AMREX_SPACEDIM == 1
+       data(i,j,k)=std::real( psi(i) );
+#endif
 
-    LOOP3D(imagState,geom)
 
-    data(i,j,k)=std::imag( psi(i,j,k) );
 
-    ENDLOOP3D
+    ENDLOOP
+
+    LOOP(imagState,geom)
+
+#if AMREX_SPACEDIM == 3
+       data(i,j,k)=std::imag( psi(i,j,k) );
+#endif
+
+#if AMREX_SPACEDIM == 1
+       data(i,j,k)=std::imag( psi(i) );
+#endif
+
+    ENDLOOP
 
 
 

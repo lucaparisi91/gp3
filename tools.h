@@ -9,7 +9,10 @@ using namespace amrex;
 namespace py = pybind11;
 
 
-#define LOOP3D( state , geom  ) \
+
+
+#if AMREX_SPACEDIM == 3
+#define LOOP( state , geom  ) \
 	{ \
 	const Real* dx = geom.CellSize(); \
 	const Real* prob_lo = geom.ProbLo(); \
@@ -24,14 +27,38 @@ namespace py = pybind11;
 	     		for (int i=lo[0];i<=hi[0];i++) \
 	     	{ \
 
-#define ENDLOOP3D \
+#define ENDLOOP \
 			 }\
 	} \
 	} 
 
 
+#endif
 
 
+#if AMREX_SPACEDIM==1
+
+#define LOOP( state , geom  ) \
+	{ \
+	const Real* dx = geom.CellSize(); \
+	const Real* prob_lo = geom.ProbLo(); \
+	for ( MFIter mfi(state); mfi.isValid(); ++mfi ) \
+	{ \
+	    const Box& bx = mfi.validbox(); \
+	    const int* lo = bx.loVect(); \
+	    const int *hi= bx.hiVect(); \
+	    Array4< Real> const & data = state[mfi].array();\
+		const int j=0;\
+		const int k=0;\
+		for (int i=lo[0];i<=hi[0];i++) \
+			{
+
+#define ENDLOOP \
+			 }\
+	} \
+	} 
+
+#endif
 
 Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0);
 
@@ -41,16 +68,25 @@ createGeometry( const json_t & settings);
 template<class evaluator_t >
 void fill( MultiFab & state, Geometry & geom,  const evaluator_t & evaluator )
 {
+  LOOP( state, geom  )
 
-  LOOP3D( state, geom  )
-
+#if AMREX_SPACEDIM == 3
    auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
-	 auto y= prob_lo[1] + (j + 0.5) * dx[1];
-	 auto z= prob_lo[2] + (k + 0.5) * dx[2];		
+   auto y= prob_lo[1] + (j + 0.5) * dx[1];
+   auto z= prob_lo[2] + (k + 0.5) * dx[2];		
 
    data(i,j,k) = evaluator(x,y,z);
+#endif
 
-  ENDLOOP3D
+#if AMREX_SPACEDIM == 1
+   auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+   data(i,j,k,0) = evaluator(x);
+#endif
+
+
+
+  ENDLOOP
+
 
 }
 

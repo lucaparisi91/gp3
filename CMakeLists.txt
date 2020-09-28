@@ -4,8 +4,7 @@ project(gp)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INSTALL_PREFIX /home/luca/source/GP3/install)
-set(DIM 3)
-
+set(DIM 1)
 
 add_subdirectory(external/pybind11)
 add_subdirectory(external/amrex)
@@ -32,7 +31,7 @@ set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}  )
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wfatal-errors -std=gnu++17")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wfatal-errors -std=gnu++17")
 
-
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 message(${CMAKE_SOURCE_DIR})
 include_directories(${MPI_INCLUDE_PATH} external/json/single_include external/pybind11_json/include)
 
@@ -49,17 +48,21 @@ target_include_directories(gp_lib PUBLIC
                            external/pybind11_json/include
 			   )
 
-pybind11_add_module(gp_c gp.cpp )
+set(pythonBindingTarget gp${DIM}D_c)
+
+pybind11_add_module(${pythonBindingTarget} gp.cpp )
 #find_package(AMReX)
-target_link_libraries(gp_c PRIVATE amrex ${MPI_LIBRARIES} gfortran gp_lib  )
+target_link_libraries( ${pythonBindingTarget} PRIVATE amrex ${MPI_LIBRARIES} gfortran gp_lib  )
 #add_executable(main main.cpp run.cpp)
 #target_link_libraries( main PUBLIC amrex ${MPI_LIBRARIES} gfortran pthread)
 
 set (TEST_SOURCES tst/model-test.cpp)
 add_executable(tst tst/main.cpp ${TEST_SOURCES})
-target_link_libraries(tst PUBLIC  gtest  ${MPI_LIBRARIES} gp_lib amrex)
+target_link_libraries(tst PRIVATE  gtest  ${MPI_LIBRARIES} amrex)
+target_link_libraries(tst PUBLIC  gp_lib)
+
 target_include_directories(tst PUBLIC
                            "${PROJECT_BINARY_DIR}/.."
                            )
 
-install(TARGETS gp_c DESTINATION /home/luca/source/GP3/python)
+install(TARGETS ${pythonBindingTarget} DESTINATION /home/luca/source/GP3/python)
