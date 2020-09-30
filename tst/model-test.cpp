@@ -10,6 +10,7 @@
 #include "functionalFactory.h"
 #include "initializer.h"
 
+
 TEST(initialization, createGeometry)
 {
     
@@ -108,7 +109,7 @@ TEST(initialization, harmonic)
 	
     auto r2 = x*x;
 
-     ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
+     //ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
 #endif
 
 
@@ -120,27 +121,36 @@ TEST(initialization, harmonic)
 }
 
 
-TEST(initialization,harmonic_sperical)
+
+#if AMREX_SPACEDIM == 1
+
+TEST(initialization,harmonic_spherical)
 {
     auto settings = R"( 
         { 
-        "geometry" : {"shape" : [100000] , "domain" : [ [1e-3,5]  ],"coordinates" : "spherical" } } )"_json;
+        "geometry" : {"shape" : [1000] , "domain" : [ [0,10]  ],"coordinates" : "spherical" } } )"_json;
     
     auto [box , geom , dm] = createGeometry(settings["geometry"]);
 
     int Ncomp = 1;
-    int Nghost = 2;
+    int Nghost = 1;
 
 
     MultiFab phi_real_old(box, dm, Ncomp, Nghost);
     MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
-
+    
     MultiFab phi_real_new(box, dm, Ncomp, Nghost);
     MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
 
-    phi_imag_old=0;
 
-     auto functionalSettings = R"( 
+    Real alpha = 1;
+    phi_real_old=0.;
+    phi_real_new=0.;
+
+    fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
+
+
+      auto functionalSettings = R"( 
         {
             "name" : "harmonic",
             "omega" : 1.0 
@@ -148,53 +158,26 @@ TEST(initialization,harmonic_sperical)
    
     auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
 
+    stencilLaplacianOperator lap;
+
+    func->setLaplacianOperator(&lap);
+
     func->define(geom,box,dm);
-
-        Real alpha=0.5;
-
-    fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
-
-
-    LOOP(phi_real_old,geom)
-
-    auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
-    ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
-
-    ENDLOOP
-
-    Vector<BCRec> bc(Ncomp);
-
-    for (int n = 0; n < Ncomp; ++n)
-        {   
-                bc[n].setLo(0,BCType::foextrap);
-                bc[n].setHi(0,BCType::foextrap);
-
-    }
-
-    phi_real_old.FillBoundary(geom.periodicity());
-    phi_imag_old.FillBoundary(geom.periodicity());
-
-    FillDomainBoundary(phi_real_old, geom, bc);
-    FillDomainBoundary(phi_imag_old, geom, bc);
-
 
     func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
 
     LOOP(phi_real_new,geom)
 
-
      auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
 	 
      auto r2 = r*r;
 
-    if  (i >= 0 and i<99999) 
-     EXPECT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
 
+     ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
 
     ENDLOOP
 
-
-
-
-
 }
+
+
+#endif

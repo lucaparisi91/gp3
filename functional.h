@@ -64,7 +64,7 @@
 class functional
 {
 public:
-    functional() : lap(NULL) {}
+    functional() : lap(NULL),laplacianOwned(false) {}
     virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ );
 
     virtual void evaluate(
@@ -81,12 +81,15 @@ public:
 
     ~functional();
 
+	void setLaplacianOperator(laplacianOperator * lap_);
+
     private:
     Geometry _geom;
     BoxArray _box;
     DistributionMapping _dm;
     int _laplacianOrder;
     laplacianOperator *lap;
+	bool laplacianOwned;
 };
 
 class harmonicFunctional : public functional

@@ -53,6 +53,22 @@ namespace py = pybind11;
 		for (int i=lo[0];i<=hi[0];i++) \
 			{
 
+#define LOOP_2ARG( state , state2,  geom  ) \
+	{ \
+	const Real* dx = geom.CellSize(); \
+	const Real* prob_lo = geom.ProbLo(); \
+	for ( MFIter mfi(state); mfi.isValid(); ++mfi ) \
+	{ \
+	    const Box& bx = mfi.validbox(); \
+	    const int* lo = bx.loVect(); \
+	    const int *hi= bx.hiVect(); \
+	    Array4< Real> const & data = state[mfi].array();\
+		Array4< Real> const & data2 = state[mfi].array();\
+		const int j=0;\
+		const int k=0;\
+		for (int i=lo[0];i<=hi[0];i++) \
+			{
+
 #define ENDLOOP \
 			 }\
 	} \

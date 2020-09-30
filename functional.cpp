@@ -6,7 +6,13 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
     _box = box_;
     _dm=dm_;
 
-    lap=new amrexLaplacianOperator();
+    // creates a new laplacian if one was not previously set
+    if (lap == NULL)
+    {
+        lap=new amrexLaplacianOperator();
+        laplacianOwned=true;
+    }
+
     lap->define(geom_,box_,dm_);
 
 
@@ -14,8 +20,19 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
 
 functional::~functional()
 {
-    if (lap != NULL)
+    if (laplacianOwned)
     {delete lap;}
+}
+
+void functional::setLaplacianOperator(laplacianOperator * lap_)
+{
+    if (laplacianOwned) 
+    {
+        delete lap;
+    };
+
+    lap=lap_;
+    laplacianOwned=false;
 }
 
  void harmonicFunctional::evaluate(

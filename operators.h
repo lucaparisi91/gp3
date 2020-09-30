@@ -47,4 +47,18 @@ class amrexLaplacianOperator : public laplacianOperator
 
 };
 
+class stencilLaplacianOperator : public laplacianOperator
+{
+    public:
+    stencilLaplacianOperator(int order_ = 2) : order(order_), laplacianOperator::laplacianOperator(){} ;
+
+    virtual void apply(MultiFab & newMultiFab, MultiFab & oldMultiFab) ;
+    void apply2OrderSpherical(MultiFab & newMultiFab, MultiFab & oldMultiFab) ;
+
+
+    private:
+
+    int order;
+};
+
 #endif
