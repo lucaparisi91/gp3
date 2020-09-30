@@ -41,7 +41,7 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
-
+    
     Real norm2=0;
     for ( MFIter mfi( phi_real); mfi.isValid(); ++mfi )
     {
@@ -64,18 +64,7 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
     return norm2*2*M_PI*dx[0]*dx[1];
 }
 
-void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom, Real N=1)
-{
-    /* Normalizes each component indipendently  */
-    for (int i=0;i<phi_real.nComp();i++)
-        {
-            Real norm2=norm(phi_real,phi_imag,geom,i);
-            std::cout << norm2 << std::endl;
 
-            phi_real.mult( std::sqrt(N)/std::sqrt(norm2),i,1);
-            phi_imag.mult(std::sqrt(N)/std::sqrt(norm2),i,1);
-    }
-}
 
 
 

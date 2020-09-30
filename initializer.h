@@ -4,7 +4,7 @@
 #include"traits.h"
 #include "functionalFactory.h"
 #include <AMReX_PlotFileUtil.H>
-
+#include "operatorsFactory.h"
 
 
 class initializer
@@ -14,9 +14,12 @@ class initializer
     initializer();
     
     functionalFactory func;
+    opFactory operatorFac;
   public:
 
     auto & getFunctionalFactory() {return func;}
+
+    auto & getOperatorsFactory() {return operatorFac;}
 
     void init()
     {

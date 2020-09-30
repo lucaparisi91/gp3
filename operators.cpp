@@ -2,8 +2,7 @@
 #include "stencils.h"
 #include "gpExceptions.h"
 
-
-void laplacianOperator::define (Geometry & geom_ , BoxArray & ba_ , DistributionMapping & dm_)
+void op::define (Geometry & geom_ , BoxArray & ba_ , DistributionMapping & dm_)
 {
     _geom=geom_;
     _ba = ba_;
@@ -11,7 +10,6 @@ void laplacianOperator::define (Geometry & geom_ , BoxArray & ba_ , Distribution
 }
 
 void amrexLaplacianOperator::define (Geometry & geom_ , BoxArray & ba_ , DistributionMapping & dm_)
-
 {
     laplacianOperator::define( geom_, ba_ , dm_ ) ;
 
@@ -63,7 +61,7 @@ void amrexLaplacianOperator::define (Geometry & geom_ , BoxArray & ba_ , Distrib
   
     linPoisson.setLevelBC(0,nullptr);
 
-    linPoisson.setMaxOrder(4);
+    linPoisson.setMaxOrder(order);
     
     lap= new MLMG(linPoisson);
 
@@ -110,7 +108,7 @@ void stencilLaplacianOperator::apply2OrderSpherical(MultiFab & state, MultiFab &
         // loop over the inner part of the box
         int iLow=std::max( lo[0] , order - 1 );
         int iHi=std::min( hi[0] , hiDomain[0] - order + 1 );
-        
+
 
 		for (int i=iLow;i<=iHi;i++) 
 			{
@@ -154,5 +152,21 @@ void stencilLaplacianOperator::apply(MultiFab & state, MultiFab & stateOld )
         throw missingImplementation("Non spherical higher order stencil laplacian not implemented yet");
 
     }
-
 }
+
+stencilLaplacianOperator::stencilLaplacianOperator(int order_) : 
+        order(order_)
+     {
+         if (order != 2) {
+             throw missingImplementation("Higher order laplacian not implemented");
+         }
+    }
+
+
+
+
+
+
+
+
+

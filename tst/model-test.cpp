@@ -50,9 +50,13 @@ TEST(initialization, harmonic)
      auto functionalSettings = R"( 
         {
             "name" : "harmonic",
-            "omega" : 1.0 
+            "omega" : 1.0 ,
+            "laplacian" : {
+                "name" : "amrexLaplacian",
+                "order" : 2
+            }
          } )"_json;
-   
+    
     auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
 
     func->define(geom,box,dm);
@@ -121,7 +125,6 @@ TEST(initialization, harmonic)
 }
 
 
-
 #if AMREX_SPACEDIM == 1
 
 TEST(initialization,harmonic_spherical)
@@ -153,15 +156,15 @@ TEST(initialization,harmonic_spherical)
       auto functionalSettings = R"( 
         {
             "name" : "harmonic",
-            "omega" : 1.0 
+            "omega" : 1.0 ,
+            "laplacian" :
+            {
+                "name" : "stencilLaplacian",
+                "order" : 2 
+            }
          } )"_json;
-   
+    
     auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
-
-    stencilLaplacianOperator lap;
-
-    func->setLaplacianOperator(&lap);
-
     func->define(geom,box,dm);
 
     func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
@@ -176,6 +179,18 @@ TEST(initialization,harmonic_spherical)
      ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
 
     ENDLOOP
+
+
+    auto norm2 = norm(phi_real_old,phi_imag_old,geom);
+
+    ASSERT_NEAR(norm2 , std::pow(M_PI/(2*alpha), 3/2.) ,1e-2);
+
+    normalize(phi_real_old,phi_imag_old , geom);
+
+    norm2 = norm(phi_real_old,phi_imag_old,geom);
+
+    ASSERT_NEAR(norm2,1,1e-2);
+
 
 }
 

@@ -1,4 +1,5 @@
 #include "functional.h"
+#include "initializer.h"
 
 void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ )
 {
@@ -9,7 +10,7 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
     // creates a new laplacian if one was not previously set
     if (lap == NULL)
     {
-        lap=new amrexLaplacianOperator();
+        lap=new amrexLaplacianOperator(2);
         laplacianOwned=true;
     }
 
@@ -68,10 +69,15 @@ void functional::setLaplacianOperator(laplacianOperator * lap_)
 		phi_new_real(  i,j,k,0)+= tmp*phi_old_real(i,j,k,0);
 		phi_new_imag( i,j,k,0)+= tmp*phi_old_imag( i,j,k,0);
 
-
        END_EVALUATION_LOOP
 
-
-
-
     } 
+
+    functional::functional(const json_t & j) : functional::functional()
+    {
+        if (j.contains("laplacian"))
+        {
+            lap = initializer::instance().getOperatorsFactory().create(j["laplacian"]);
+            laplacianOwned = true;
+        }
+    }

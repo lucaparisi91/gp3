@@ -78,6 +78,12 @@ namespace py = pybind11;
 
 Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component=0);
 
+
+
+void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom, Real N=1);
+
+
+
 std::tuple< BoxArray , Geometry , DistributionMapping   >  
 createGeometry( const json_t & settings);
 

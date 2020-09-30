@@ -64,6 +64,7 @@
 class functional
 {
 public:
+	functional(const json_t & j);
     functional() : lap(NULL),laplacianOwned(false) {}
     virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ );
 
@@ -88,7 +89,7 @@ public:
     BoxArray _box;
     DistributionMapping _dm;
     int _laplacianOrder;
-    laplacianOperator *lap;
+    op *lap;
 	bool laplacianOwned;
 };
 
@@ -98,7 +99,10 @@ class harmonicFunctional : public functional
 
     harmonicFunctional(Real omega = 1) : prefactor(0.5 * omega*omega) {};
 
-	harmonicFunctional(const json_t & j ) : harmonicFunctional( j["omega"].get<Real>() ) {}
+	harmonicFunctional(const json_t & j ) : prefactor(0.5*std::pow( j["omega"].get<Real>() , 2)    ) ,   functional::functional(j)
+	  {
+
+	}
 
 
     virtual void evaluate(

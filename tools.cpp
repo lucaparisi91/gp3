@@ -1,7 +1,7 @@
 #include "tools.h"
 #include "gpExceptions.h"
 
-Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
+Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
@@ -53,6 +53,80 @@ Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometr
 }
 
 
+
+Real normSphericalSymmetry( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
+{
+    const Real* dx = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
+
+    Real norm2=0;
+    for ( MFIter mfi( phi_real); mfi.isValid(); ++mfi )
+    {
+        const Box& bx = mfi.validbox();
+        const int* lo = bx.loVect();
+        const int *hi= bx.hiVect();
+        Array4< const Real> const & phi_real_box = phi_real[mfi].const_array();
+        Array4< const Real> const & phi_imag_box = phi_imag[mfi].const_array();
+        int j=0;
+        int k=0;
+
+        for (int i=lo[0];i<=hi[0];i++)
+            {
+                Real r =  prob_lo[0] + (i+0.5)*dx[0];
+
+                norm2+=(phi_real_box(i,j,k,component)*phi_real_box(i,j,k,component)
+                        + phi_imag_box(i,j,k,component)*phi_imag_box(i,j,k,component)) * r*r;
+                    }
+
+    }
+
+    amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
+
+
+    Real dV=1;
+
+    for (int d=0;d<amrex::SpaceDim;d++)
+    {
+        dV*=dx[d];
+    }
+
+    return norm2*dV*4*M_PI;
+}
+
+Real norm( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
+{
+    if (geom.Coord() == 0) 
+    {
+        return normCartesian(phi_real,phi_imag,geom,component);
+    }
+    else if(geom.Coord()==2)
+    {
+        return normSphericalSymmetry(phi_real,phi_imag,geom,component);
+    }
+    else
+    {
+        throw invalidInput("Unkown coordinates in normalization function.");
+        
+    }
+    
+}
+
+
+
+void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & geom, Real N)
+{
+    /* Normalizes each component indipendently  */
+    for (int i=0;i<phi_real.nComp();i++)
+        {
+            Real norm2=norm(phi_real,phi_imag,geom,i);
+            
+            
+            std::cout << norm2 << std::endl;
+
+            phi_real.mult( std::sqrt(N)/std::sqrt(norm2),i,1);
+            phi_imag.mult(std::sqrt(N)/std::sqrt(norm2),i,1);
+    }
+}
 
 
 
