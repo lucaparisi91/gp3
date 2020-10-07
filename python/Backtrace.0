@@ -8,131 +8,131 @@
             readelf -wl my_exefile | grep my_line_address'
     to find out the offset for that line.
 
- 0: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x45) [0x7f06a6ad85c5]
+ 0: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x45) [0x7fbe699156e5]
 
- 1: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x362) [0x7f06a6ada3c2]
+ 1: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex11BLBackTrace7handlerEi+0x362) [0x7fbe699174f2]
 
- 2: /lib/x86_64-linux-gnu/libc.so.6(+0x46210) [0x7f06bee92210]
+ 2: /lib/x86_64-linux-gnu/libc.so.6(+0x46210) [0x7fbe81441210]
 
- 3: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN16stencilLaplacianILi2EE14applySphericalERN5amrex8MultiFabES3_+0x2c0) [0x7f06a6afa2e0]
+ 3: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN5amrex18FillDomainBoundaryERNS_8MultiFabERKNS_8GeometryERKNS_6VectorINS_5BCRecESaIS6_EEE+0x2a6) [0x7fbe69943e66]
 
- 4: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN16stencilLaplacianILi2EE5applyERN5amrex8MultiFabES3_+0x4e) [0x7f06a6afb03e]
+ 4: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN16stencilLaplacianILi2EE14applySphericalERN5amrex8MultiFabES3_+0x4b) [0x7fbe6994248b]
 
- 5: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN18harmonicFunctional8evaluateERN5amrex8MultiFabES2_S2_S2_d+0x5c) [0x7f06a6af302c]
+ 5: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN16stencilLaplacianILi2EE5applyERN5amrex8MultiFabES3_+0x4e) [0x7fbe6994347e]
 
- 6: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper8evaluateERN5amrex8MultiFabES2_S2_S2_d+0x7b) [0x7f06a6ae51db]
+ 6: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN18harmonicFunctional8evaluateERN5amrex8MultiFabES2_S2_S2_d+0x5c) [0x7fbe69931aac]
 
- 7: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper6evolveERN5amrex8MultiFabES2_S2_S2_dd+0x1df) [0x7f06a6ae540f]
+ 7: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper8evaluateERN5amrex8MultiFabES2_S2_S2_d+0x7b) [0x7fbe69922c1b]
 
- 8: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x131d5b) [0x7f06a6ae3d5b]
+ 8: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(_ZN10RK4Stepper6evolveERN5amrex8MultiFabES2_S2_S2_dd+0x2e5) [0x7fbe69922f55]
 
- 9: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x6b373) [0x7f06a6a1d373]
+ 9: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x153df3) [0x7fbe69921df3]
 
-10: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x730bb) [0x7f06a6a250bb]
+10: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x84e43) [0x7fbe69852e43]
 
-11: python(PyCFunction_Call+0x56) [0x55bd3ae52f76]
+11: /home/luca/source/GP3/python/gp1D_c.cpython-38-x86_64-linux-gnu.so(+0x8fb3b) [0x7fbe6985db3b]
 
-12: python(_PyObject_MakeTpCall+0x22f) [0x55bd3ae1085f]
+12: python(PyCFunction_Call+0x56) [0x5558c1821f76]
 
-13: python(_PyEval_EvalFrameDefault+0x4596) [0x55bd3ae97f56]
+13: python(_PyObject_MakeTpCall+0x22f) [0x5558c17df85f]
 
-14: python(+0x18bc0b) [0x55bd3ae5ec0b]
+14: python(_PyEval_EvalFrameDefault+0x4596) [0x5558c1866f56]
 
-15: python(+0xfeb84) [0x55bd3add1b84]
+15: python(+0x18bc0b) [0x5558c182dc0b]
 
-16: python(_PyFunction_Vectorcall+0x10b) [0x55bd3ae5e86b]
+16: python(+0xfeb84) [0x5558c17a0b84]
 
-17: python(+0x10075e) [0x55bd3add375e]
+17: python(_PyFunction_Vectorcall+0x10b) [0x5558c182d86b]
 
-18: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+18: python(+0x10075e) [0x5558c17a275e]
 
-19: python(_PyFunction_Vectorcall+0x1e3) [0x55bd3ae5e943]
+19: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-20: python(+0x18be79) [0x55bd3ae5ee79]
+20: python(_PyFunction_Vectorcall+0x1e3) [0x5558c182d943]
 
-21: python(PyVectorcall_Call+0x71) [0x55bd3ae10041]
+21: python(+0x18be79) [0x5558c182de79]
 
-22: python(_PyEval_EvalFrameDefault+0x1fdb) [0x55bd3ae9599b]
+22: python(PyVectorcall_Call+0x71) [0x5558c17df041]
 
-23: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+23: python(_PyEval_EvalFrameDefault+0x1fdb) [0x5558c186499b]
 
-24: python(_PyObject_FastCallDict+0x20c) [0x55bd3ae5f48c]
+24: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-25: python(_PyObject_Call_Prepend+0x63) [0x55bd3ae5f733]
+25: python(_PyObject_FastCallDict+0x20c) [0x5558c182e48c]
 
-26: python(+0x18c83a) [0x55bd3ae5f83a]
+26: python(_PyObject_Call_Prepend+0x63) [0x5558c182e733]
 
-27: python(_PyObject_MakeTpCall+0x22f) [0x55bd3ae1085f]
+27: python(+0x18c83a) [0x5558c182e83a]
 
-28: python(_PyEval_EvalFrameDefault+0x475) [0x55bd3ae93e35]
+28: python(_PyObject_MakeTpCall+0x22f) [0x5558c17df85f]
 
-29: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+29: python(_PyEval_EvalFrameDefault+0x475) [0x5558c1862e35]
 
-30: python(_PyFunction_Vectorcall+0x1e3) [0x55bd3ae5e943]
+30: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-31: python(+0x18be79) [0x55bd3ae5ee79]
+31: python(_PyFunction_Vectorcall+0x1e3) [0x5558c182d943]
 
-32: python(PyVectorcall_Call+0x71) [0x55bd3ae10041]
+32: python(+0x18be79) [0x5558c182de79]
 
-33: python(_PyEval_EvalFrameDefault+0x1fdb) [0x55bd3ae9599b]
+33: python(PyVectorcall_Call+0x71) [0x5558c17df041]
 
-34: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+34: python(_PyEval_EvalFrameDefault+0x1fdb) [0x5558c186499b]
 
-35: python(_PyObject_FastCallDict+0x20c) [0x55bd3ae5f48c]
+35: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-36: python(_PyObject_Call_Prepend+0x63) [0x55bd3ae5f733]
+36: python(_PyObject_FastCallDict+0x20c) [0x5558c182e48c]
 
-37: python(+0x18c83a) [0x55bd3ae5f83a]
+37: python(_PyObject_Call_Prepend+0x63) [0x5558c182e733]
 
-38: python(_PyObject_MakeTpCall+0x22f) [0x55bd3ae1085f]
+38: python(+0x18c83a) [0x5558c182e83a]
 
-39: python(_PyEval_EvalFrameDefault+0x475) [0x55bd3ae93e35]
+39: python(_PyObject_MakeTpCall+0x22f) [0x5558c17df85f]
 
-40: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+40: python(_PyEval_EvalFrameDefault+0x475) [0x5558c1862e35]
 
-41: python(_PyFunction_Vectorcall+0x1e3) [0x55bd3ae5e943]
+41: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-42: python(+0x18be79) [0x55bd3ae5ee79]
+42: python(_PyFunction_Vectorcall+0x1e3) [0x5558c182d943]
 
-43: python(PyVectorcall_Call+0x71) [0x55bd3ae10041]
+43: python(+0x18be79) [0x5558c182de79]
 
-44: python(_PyEval_EvalFrameDefault+0x1fdb) [0x55bd3ae9599b]
+44: python(PyVectorcall_Call+0x71) [0x5558c17df041]
 
-45: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+45: python(_PyEval_EvalFrameDefault+0x1fdb) [0x5558c186499b]
 
-46: python(_PyObject_FastCallDict+0x20c) [0x55bd3ae5f48c]
+46: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 
-47: python(_PyObject_Call_Prepend+0x63) [0x55bd3ae5f733]
+47: python(_PyObject_FastCallDict+0x20c) [0x5558c182e48c]
 
-48: python(+0x18c83a) [0x55bd3ae5f83a]
+48: python(_PyObject_Call_Prepend+0x63) [0x5558c182e733]
 
-49: python(_PyObject_MakeTpCall+0x22f) [0x55bd3ae1085f]
+49: python(+0x18c83a) [0x5558c182e83a]
 
-50: python(_PyEval_EvalFrameDefault+0x475) [0x55bd3ae93e35]
+50: python(_PyObject_MakeTpCall+0x22f) [0x5558c17df85f]
 
-51: python(_PyFunction_Vectorcall+0x10b) [0x55bd3ae5e86b]
+51: python(_PyEval_EvalFrameDefault+0x475) [0x5558c1862e35]
 
-52: python(+0x10075e) [0x55bd3add375e]
+52: python(_PyFunction_Vectorcall+0x10b) [0x5558c182d86b]
 
-53: python(_PyFunction_Vectorcall+0x10b) [0x55bd3ae5e86b]
+53: python(+0x10075e) [0x5558c17a275e]
 
-54: python(+0x10075e) [0x55bd3add375e]
+54: python(_PyFunction_Vectorcall+0x10b) [0x5558c182d86b]
 
-55: python(_PyEval_EvalCodeWithName+0x7df) [0x55bd3ae5df9f]
+55: python(+0x10075e) [0x5558c17a275e]
 
-56: python(_PyFunction_Vectorcall+0x1e3) [0x55bd3ae5e943]
+56: python(_PyEval_EvalCodeWithName+0x7df) [0x5558c182cf9f]
 
-57: python(_PyObject_FastCallDict+0x24b) [0x55bd3ae5f4cb]
+57: python(_PyFunction_Vectorcall+0x1e3) [0x5558c182d943]
 
-58: python(_PyObject_Call_Prepend+0x63) [0x55bd3ae5f733]
+58: python(_PyObject_FastCallDict+0x24b) [0x5558c182e4cb]
 
-59: python(+0x18c8ca) [0x55bd3ae5f8ca]
+59: python(_PyObject_Call_Prepend+0x63) [0x5558c182e733]
 
-60: python(_PyObject_MakeTpCall+0x1a4) [0x55bd3ae107d4]
+60: python(+0x18c8ca) [0x5558c182e8ca]
 
-61: python(_PyEval_EvalFrameDefault+0x11d0) [0x55bd3ae94b90]
+61: python(_PyObject_MakeTpCall+0x1a4) [0x5558c17df7d4]
 
-62: python(_PyEval_EvalCodeWithName+0x2d2) [0x55bd3ae5da92]
+62: python(_PyEval_EvalFrameDefault+0x11d0) [0x5558c1863b90]
 
-63: python(PyEval_EvalCodeEx+0x44) [0x55bd3ae5e754]
+63: python(_PyEval_EvalCodeWithName+0x2d2) [0x5558c182ca92]
 

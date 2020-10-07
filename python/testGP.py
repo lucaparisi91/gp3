@@ -1,6 +1,5 @@
 import gp
 import unittest 
-import gp3D_c
 import gp1D_c
 import numpy as np
 import matplotlib.pylab as plt 
@@ -317,6 +316,8 @@ class testRun(unittest.TestCase):
 	        },
 	        "normalization" : 1.0,
 	        "components" : 1 , 
+            "name" : "testHarmonicSpherical"
+
         }
 
         geo = gp.geometry(**settings["geometry"])
@@ -325,7 +326,7 @@ class testRun(unittest.TestCase):
         alpha=1.;
         y= np.exp( - alpha * r2   ) + 0*1j
         gp1D_c.run(y, settings)
-        
+
 
 
 

@@ -13,7 +13,10 @@ using Real = double;
 #include <complex>
 using namespace amrex;
 #include "initializer.h"
+#include "plotFile.h"
+#include <filesystem>
 
+namespace  fs = std::filesystem ;
 
 inline auto index_F(int i,int j,int xlen,int ylen ) {return i + j*xlen ;}
 
@@ -62,9 +65,27 @@ Real normCylindrical2( const MultiFab & phi_real , const MultiFab & phi_imag,  c
     return norm2*2*M_PI*dx[0]*dx[1];
 }
 
+void save(MultiFab & realWave, MultiFab & imagWave, Geometry & geom , const json_t & settings, int iBlock , Real time )
+    {
+        std::string dirname = "out";
+
+        if (settings.contains("name") )
+        {
+            dirname = settings["name"].get<std::string>();
+        }
+
+        if (! fs::exists(dirname)) 
+        {
+            fs::create_directory(dirname);
+        }
+
+        writeSingleLevel(realWave,imagWave,geom,dirname + "/block_" + std::to_string(iBlock),time);
+
+    }
 
 void run(py::array_t<std::complex<Real> > initialCondition , const json_t & settings   )
 {
+
     initializer::instance().init();
     auto [ box, geom , dm, low_bc , high_bc] = createGeometry(settings["geometry"]);
 
@@ -99,14 +120,18 @@ void run(py::array_t<std::complex<Real> > initialCondition , const json_t & sett
     Real normalization = settings["normalization"].get<Real>();
 
     fill(phi_real_old, phi_imag_old, initialCondition , geom);
-    normalize(phi_real_old,phi_imag_old,geom,1);
+    normalize(phi_real_old,phi_imag_old,geom,normalization);
 
+    
     std::string pltfile_real_init = amrex::Concatenate("out/phi_real",0,5);
     std::string pltfile_imag_init = amrex::Concatenate("out/phi_imag",0,5);
 
 
-    WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
-    WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
+    save(phi_real_old, phi_imag_old, geom , settings, 0 , 0 );
+
+
+    //WriteSingleLevelPlotfile(pltfile_real_init, phi_real_old, {"phi"}, geom, 0, 0);
+    //WriteSingleLevelPlotfile(pltfile_imag_init, phi_imag_old, {"phi"}, geom, 0, 0);
 
 
     Real dt=settings["run"]["timeStep"].get<Real>();
@@ -141,8 +166,10 @@ void run(py::array_t<std::complex<Real> > initialCondition , const json_t & sett
             std::string pltfile_real = amrex::Concatenate("out/phi_real",i+1,5);
             std::string pltfile_imag = amrex::Concatenate("out/phi_imag",i+1,5);
 
-            WriteSingleLevelPlotfile(pltfile_real, phi_real_old, {"phi"}, geom, time, 0);
-            WriteSingleLevelPlotfile(pltfile_imag, phi_imag_old, {"phi"}, geom, time, 0);
+            save(phi_real_old, phi_imag_old, geom , settings, i , time );
+
+            //WriteSingleLevelPlotfile(pltfile_real, phi_real_old, {"phi"}, geom, time, 0);
+            //WriteSingleLevelPlotfile(pltfile_imag, phi_imag_old, {"phi"}, geom, time, 0);
        }
     } 
 

@@ -421,10 +421,9 @@ TEST(save, parquetTest)
 
      auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
     ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
-
     ENDLOOP
-
-    writeSingleLevel(phi_real_old,phi_imag_old,geom);
+    
+    writeSingleLevel(phi_real_old,phi_imag_old,geom, "out-test");
 
 }
 

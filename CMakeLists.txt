@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(gp)
 set(DIM 1)
 
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INSTALL_PREFIX /home/luca/source/GP3/install)
 
@@ -17,7 +18,6 @@ add_subdirectory(external/googletest)
 find_package(Arrow REQUIRED)
 
 link_directories(  /home/luca/source/GP3/external/arrow_cpp/lib)
-
 include_directories( /home/luca/source/GP3/external/arrow_cpp/include)
 
 
@@ -46,9 +46,6 @@ set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp o
 functional.cpp initializer.cpp plotFile.cpp)
 
 
-
-
-
 add_library(gp_lib ${GP_FILES} )
 target_link_libraries(gp_lib PRIVATE amrex ${MPI_LIBRARIES} gfortran arrow parquet  )
 
@@ -62,7 +59,7 @@ set(pythonBindingTarget gp${DIM}D_c)
 
 pybind11_add_module(${pythonBindingTarget} gp.cpp )
 #find_package(AMReX)
-target_link_libraries( ${pythonBindingTarget} PRIVATE amrex ${MPI_LIBRARIES} gfortran gp_lib  )
+target_link_libraries( ${pythonBindingTarget} PRIVATE amrex ${MPI_LIBRARIES} gfortran gp_lib arrow )
 #add_executable(main main.cpp run.cpp)
 #target_link_libraries( main PUBLIC amrex ${MPI_LIBRARIES} gfortran pthread)
 
@@ -74,5 +71,3 @@ target_link_libraries(tst PUBLIC  gp_lib)
 target_include_directories(tst PUBLIC
                            "${PROJECT_BINARY_DIR}/.."
                            )
-
-install(TARGETS ${pythonBindingTarget} DESTINATION /home/luca/source/GP3/python)
