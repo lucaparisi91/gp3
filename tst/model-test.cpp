@@ -9,7 +9,7 @@
 #include "run.h"
 #include "functionalFactory.h"
 #include "initializer.h"
-
+#include "plotFile.h"
 
 TEST(initialization, createGeometry)
 {
@@ -18,7 +18,7 @@ TEST(initialization, createGeometry)
         { 
         "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"} } )"_json;
     
-    auto [box , geom , dm] = createGeometry(settings["geometry"]);
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
 
     int Ncomp = 1;
     int Nghost = 2;
@@ -33,7 +33,7 @@ TEST(initialization, harmonic)
         { 
         "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ],"coordinates" : "cartesian" } } )"_json;
     
-    auto [box , geom , dm] = createGeometry(settings["geometry"]);
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
 
     int Ncomp = 1;
     int Nghost = 2;
@@ -59,7 +59,7 @@ TEST(initialization, harmonic)
     
     auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
 
-    func->define(geom,box,dm);
+    func->define(geom,box,dm,low_bc,high_bc);
 
     Real alpha=1;
 #if AMREX_SPACEDIM == 3
@@ -133,7 +133,7 @@ TEST(initialization,harmonic_spherical)
         { 
         "geometry" : {"shape" : [1000] , "domain" : [ [0,10]  ],"coordinates" : "spherical" } } )"_json;
     
-    auto [box , geom , dm] = createGeometry(settings["geometry"]);
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
 
     int Ncomp = 1;
     int Nghost = 1;
@@ -165,7 +165,7 @@ TEST(initialization,harmonic_spherical)
          } )"_json;
     
     auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
-    func->define(geom,box,dm);
+    func->define(geom,box,dm,low_bc,high_bc);
 
     func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
 
@@ -194,5 +194,238 @@ TEST(initialization,harmonic_spherical)
 
 }
 
+
+#endif
+
+
+
+
+
+
+
+
+
+#if AMREX_SPACEDIM == 1
+
+TEST(initialization, harmonic_stencil2)
+{
+    auto settings = R"( 
+        { 
+        "geometry" : {"shape" : [1000] , "domain" : [ [-5,5] ],"coordinates" : "cartesian" } } )"_json;
+    
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
+
+    int Ncomp = 1;
+    int Nghost = 1;
+
+    MultiFab phi_real_old(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
+
+    MultiFab phi_real_new(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+    phi_imag_old=0;
+    phi_real_old=0;
+
+     auto functionalSettings = R"( 
+        {
+            "name" : "harmonic",
+            "omega" : 1.0 ,
+            "laplacian" : {
+                "name" : "stencilLaplacian2",
+                "order" : 2
+            }
+         } )"_json;
+    
+    auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
+
+    func->define(geom,box,dm,low_bc,high_bc);
+
+    Real alpha=1;
+#if AMREX_SPACEDIM == 3
+    fill(phi_real_old,geom, [alpha](Real x, Real y, Real z) {return exp(- alpha *(x*x + y*y + z*z));}  ) ;
+#endif
+
+#if AMREX_SPACEDIM == 1
+    fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
+#endif
+
+
+
+    LOOP(phi_real_old,geom)
+
+#if AMREX_SPACEDIM==3
+     auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+	 auto y= prob_lo[1] + (j + 0.5) * dx[1];
+	 auto z= prob_lo[2] + (k + 0.5) * dx[2];		
+
+    auto r2 = x*x + y*y + z*z;
+
+    ASSERT_NEAR(data(i,j,k), exp(-alpha*r2),1e-5 ) ;
+
+#endif
+
+#if AMREX_SPACEDIM==1
+     auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
+    ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
+#endif
+
+    ENDLOOP
+
+    func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
+
+    LOOP(phi_real_new,geom)
+
+#if AMREX_SPACEDIM == 3
+
+     auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+	 auto y= prob_lo[1] + (j + 0.5) * dx[1];
+	 auto z= prob_lo[2] + (k + 0.5) * dx[2];		
+
+    auto r2 = x*x + y*y + z*z;
+
+     ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3*alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
+#endif
+
+#if AMREX_SPACEDIM == 1
+
+     auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+	
+    auto r2 = x*x;
+
+    ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
+#endif
+
+    ENDLOOP
+
+
+    delete func;
+
+}
+
+
+
+
+TEST(initialization, harmonic_stencil2_spherical)
+{
+    auto settings = R"( 
+        { 
+        "geometry" : {"shape" : [1000] , 
+        "domain" : [ [0,5] ],
+        "coordinates" : "spherical" ,
+        "bc" : ["neumann"]
+        } } )"_json;
+        
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
+
+    int Ncomp = 1;
+    int Nghost = 1;
+
+    MultiFab phi_real_old(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
+
+    MultiFab phi_real_new(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+    phi_imag_old=0;
+    phi_real_old=0;
+
+     auto functionalSettings = R"( 
+        {
+            "name" : "harmonic",
+            "omega" : 1.0 ,
+            "laplacian" : {
+                "name" : "stencilLaplacian2",
+                "order" : 2
+            }
+         } )"_json;
+    
+    auto func = initializer::instance().getFunctionalFactory().create(functionalSettings);
+
+    func->define(geom,box,dm,low_bc,high_bc);
+    Real alpha = 1.;
+    fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
+
+    phi_real_old.setDomainBndry(0, 0, 1, geom)   ;
+    phi_imag_old.setDomainBndry(0, 0, 1, geom)   ;
+
+
+    LOOP(phi_real_old,geom)
+
+     auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
+    ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
+
+
+    ENDLOOP
+
+    func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
+
+    LOOP(phi_real_new,geom)
+
+
+     auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+
+    auto r2 = x*x;
+
+    {
+    ASSERT_NEAR( data(i,j,k,0) , exp(- alpha*r2 ) * ( 3* alpha  + r2 * (-2*alpha*alpha + 0.5 ) )   , 1e-2);
+    }
+
+    ENDLOOP
+
+
+    delete func;
+
+}
+
+
+TEST(save, parquetTest)
+{
+    auto settings = R"( 
+        { 
+        "geometry" : {"shape" : [1000] , 
+        "domain" : [ [0,5] ],
+        "coordinates" : "spherical" ,
+        "bc" : ["neumann"]
+        } } )"_json;
+        
+    auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
+
+    int Ncomp = 1;
+    int Nghost = 1;
+
+    MultiFab phi_real_old(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
+
+    MultiFab phi_real_new(box, dm, Ncomp, Nghost);
+    MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+    phi_imag_old=0;
+    phi_real_old=0;
+
+    Real alpha = 1;
+
+
+    fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
+
+    phi_real_old.setDomainBndry(0, 0, 1, geom)   ;
+    phi_imag_old.setDomainBndry(0, 0, 1, geom)   ;
+
+    auto bc = toMultiFabBC(low_bc,high_bc) ;
+
+    FillDomainBoundary(phi_real_old, geom, {bc} );
+
+
+
+    LOOP(phi_real_old,geom)
+
+     auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
+    ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
+
+    ENDLOOP
+
+    writeSingleLevel(phi_real_old,phi_imag_old,geom);
+
+}
 
 #endif

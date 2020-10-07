@@ -1,7 +1,8 @@
 #include "functional.h"
 #include "initializer.h"
 
-void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ )
+
+void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ , bc_t & bc_lo, bc_t & bc_high)
 {
     _geom = geom_;
     _box = box_;
@@ -14,10 +15,10 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
         laplacianOwned=true;
     }
 
-    lap->define(geom_,box_,dm_);
-
+    lap->define(geom_,box_,dm_,bc_lo,bc_high);
 
 };
+
 
 functional::~functional()
 {

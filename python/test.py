@@ -14,7 +14,6 @@ geo=gp.geometry( shape,domain)
 #print(geo.positions(0))
 y=np.exp(- (geo.positions(0)**2 + geo.positions(1)**2 + geo.positions(2) ** 2 ))
 
-
 # setup of the simulation
 settings = {
     "geometry" : {"shape" : shape , "domain" : domain},

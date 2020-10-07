@@ -1,6 +1,10 @@
 #include "tools.h"
 #include "gpExceptions.h"
 
+#include <AMReX_Geometry.H>
+#include <AMReX_MultiFab.H>
+
+
 Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
 {
     const Real* dx = geom.CellSize();
@@ -14,6 +18,19 @@ Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  cons
         const int *hi= bx.hiVect();
         Array4< const Real> const & phi_real_box = phi_real[mfi].const_array();
         Array4< const Real> const & phi_imag_box = phi_imag[mfi].const_array();
+        const int j=0;
+        const int k=0;
+
+#if AMREX_SPACEDIM == 1
+            for (int i=lo[0];i<=hi[0];i++)
+            {
+             
+                norm2+=(phi_real_box(i,j,0,component)*phi_real_box(i,j,0,component)
+                    + phi_imag_box(i,j,0,component)*phi_imag_box(i,j,0,component));
+            }
+    
+#endif
+
 
 #if AMREX_SPACEDIM == 2
         for (int j=lo[1];j<=hi[1];j++)
@@ -25,6 +42,8 @@ Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  cons
             }
     
 #endif
+
+
 
 
 #if AMREX_SPACEDIM == 3
@@ -41,10 +60,9 @@ Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  cons
 
     amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
 
-
     Real dV=1;
 
-    for (int d=0;d<amrex::SpaceDim;d++)
+    for (int d=0;d< AMREX_SPACEDIM;d++)
     {
         dV*=dx[d];
     }
@@ -121,7 +139,7 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
             Real norm2=norm(phi_real,phi_imag,geom,i);
             
             
-            std::cout << norm2 << std::endl;
+           //std::cout << "norm:  " << norm2 << std::endl;
 
             phi_real.mult( std::sqrt(N)/std::sqrt(norm2),i,1);
             phi_imag.mult(std::sqrt(N)/std::sqrt(norm2),i,1);
@@ -130,7 +148,8 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
 
 
 
-std::tuple< BoxArray , Geometry , DistributionMapping   >  
+std::tuple< BoxArray , Geometry , DistributionMapping  , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
+
 createGeometry( const json_t & settings)
 {
     BoxArray ba;
@@ -173,18 +192,48 @@ createGeometry( const json_t & settings)
 
         is_periodic[0]=0;
 
-
     }
     else
     {
         throw missingImplementation("Unkown coordinates :" + coordinates );
     }
 
+    std::array<BC,AMREX_SPACEDIM> low_bc , high_bc ;
+
+    if (settings.contains("bc") )
+    {
+        std::tie(low_bc, high_bc) = readBC(settings["bc"]);
+
+        for (int d=0;d<AMREX_SPACEDIM;d++)
+        {
+            if ( settings["bc"][d] != "periodic" )
+            {
+                is_periodic[d]=0;
+            }    
+        }
+
+    }
+    else
+    {
+        auto bc_settings =
+        #if AMREX_SPACEDIM == 1     
+        R"( ["periodic"   ])"_json
+        #endif
+         #if AMREX_SPACEDIM == 3     
+        R"( ["periodic" , "periodic" , "periodic"  ])"_json
+        #endif
+        ;
+        std::tie(low_bc, high_bc) = readBC(bc_settings);
+
+    }
+    
+
     geom.define(domain,&real_box,coord,is_periodic.data());
 
     DistributionMapping dm(ba);
 
-    return {ba, geom, dm} ;
+    return {ba, geom, dm, low_bc, high_bc} ;
+
 
 }
 
@@ -200,6 +249,7 @@ void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<R
 
 #if AMREX_SPACEDIM == 1
        data(i,j,k)=std::real( psi(i) );
+
 #endif
 
 
@@ -217,7 +267,91 @@ void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<R
 #endif
 
     ENDLOOP
+}
 
+LinOpBCType toLinOpBCType( const BC & bc )
+{
 
+    if ( bc == BC::DRICHLET) 
+    {
+        return LinOpBCType::Dirichlet;
+    }
+    else if (bc == BC::NEUMANNN)
+    {
+        return LinOpBCType::Neumann;
+    }
+    else
+    {
+        return LinOpBCType::Periodic;
+    }
 
 }
+
+
+std::tuple<std::array<BC,AMREX_SPACEDIM>, std::array<BC,AMREX_SPACEDIM> > readBC( const json_t & j)
+{
+    std::array<BC,AMREX_SPACEDIM> low_bc;
+    std::array<BC,AMREX_SPACEDIM> high_bc;
+
+    for (int d=0;d<AMREX_SPACEDIM;d++)
+    {
+        BC bc = BC::PERIODIC;
+        auto bc_type = j[d].get<std::string>(); 
+        if ( bc_type == "neumann" )
+        {
+            bc=BC::NEUMANNN;
+        }
+        else
+        { if (bc_type == "drichlet")
+            {
+                bc=BC::DRICHLET;
+            }
+            else if (bc_type != "periodic")
+            {
+                throw invalidInput("Unkown bc " + bc_type);
+            }
+        }
+        low_bc[d]=bc;
+        high_bc[d] = bc;
+    }
+
+    return std::tuple(low_bc,high_bc);
+}
+
+
+auto toMultiFabBC(const BC & bc)
+{
+    if (bc== BC::PERIODIC)
+    {
+        return BCType::int_dir;
+    }
+    else if (bc == BC::NEUMANNN)
+    {
+        return BCType::reflect_even;
+    }
+    else if (bc == BC::DRICHLET)
+    {
+        return BCType::ext_dir;
+    }
+    else
+    {
+        throw invalidInput("Unkown boundary condition");
+    }
+
+}
+
+
+BCRec toMultiFabBC(const std::array<BC,AMREX_SPACEDIM> & bc_low, const std::array<BC,AMREX_SPACEDIM> & bc_high  )
+{
+  BCRec bc;
+    
+    for (int d=0;d<AMREX_SPACEDIM;d++)
+    {  
+        bc.setLo(d, toMultiFabBC(bc_low[d]) ); 
+        bc.setHi(d, toMultiFabBC(bc_high[d]));
+    }
+
+    return bc;
+}
+
+

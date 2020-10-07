@@ -7,6 +7,7 @@
 #include "initializer.h"
 #include "functional.h"
 
+
 auto  toPyArray(MultiFab & real, MultiFab & imag, Geometry & geom)
 {
     auto shape = geom.Domain().size();
@@ -47,22 +48,25 @@ auto  toPyArray(MultiFab & real, MultiFab & imag, Geometry & geom)
 
 }
 
+
+
 auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_t & settings  )
 {
 	initializer::instance().init();
 
-    auto [ box, geom , dm] = createGeometry(settings["geometry"]);
-
+    auto [ box, geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
     
     int Ncomp = 1;
-    int order = settings["functional"]["order"];
-    int Nghost = order + 1;
+    int order = settings["functional"]["laplacian"]["order"];
+    int Nghost = 1;
 
     MultiFab phi_real_old(box, dm, Ncomp, Nghost);
     MultiFab phi_imag_old(box, dm, Ncomp, Nghost);
 
     MultiFab phi_real_new(box, dm, Ncomp, Nghost);
     MultiFab phi_imag_new(box, dm, Ncomp, Nghost);
+
+
 
     phi_real_old=0.;
     phi_imag_old=0.;
@@ -73,18 +77,22 @@ auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_
     fill(phi_real_old, phi_imag_old, initialCondition , geom);
 
     auto func = initializer::instance().getFunctionalFactory().create(settings["functional"]);
-
     
-    func->define(geom,box,dm);
+    
+    func->define(geom,box,dm,low_bc,high_bc);
+    phi_real_old.setDomainBndry(0, 0, 1, geom)   ;
+    phi_imag_old.setDomainBndry(0, 0, 1, geom)   ;
+
+
+    auto bc = toMultiFabBC(low_bc,high_bc);
 
 
     func->evaluate(phi_real_new,phi_imag_new,phi_real_old,phi_imag_old,0);
 
     delete func;
 
-
     return toPyArray(phi_real_new, phi_imag_new,geom);
-
+    
 } 
 
 #define _MODULE_NAME_(n) gp##n ## D_c
@@ -92,14 +100,17 @@ auto   evaluatePython( py::array_t<std::complex<Real> > initialCondition , json_
 
 PYBIND11_MODULE( MODULE_NAME(AMREX_SPACEDIM)   ,m) {
 m.doc() = "GP simulation python binding"; // optional module docstring
-py::class_<geometry>(m, "geometry")
+/* py::class_<geometry>(m, "geometry")
     .def(py::init<std::array<size_t,AMREX_SPACEDIM> >())
     .def_readwrite("shape", &geometry::shape)
     .def_readwrite("lower_edges", &geometry::lower_edges)
     .def_readwrite("higher_edges", &geometry::higher_edges)
     .def_readwrite("max_grid_size", &geometry::max_grid_size)
     .def_readwrite("symmetry", &geometry::symmetry);
-m.def("run", &run, "Run the simulation");
+ m.def("run", &run, "Run the simulation");
+ */
 m.def("evaluate",&evaluatePython, "Evaluate the rhs." );
-m.def("runTest", & runTest , "Run test");
+m.def("run", & run , "Run the GP simulation");
 }
+
+

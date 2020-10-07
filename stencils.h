@@ -1,3 +1,6 @@
+#ifndef STENCILS_H
+#define STENCILS_H
+
 
 enum {CENTRAL = 0 , FORWARD = 1, BACKWARD= 2} directionDeriv;
 
@@ -132,7 +135,7 @@ public:
 
 };
 
-
+	#if AMREX_SPACEDIM == 1
 template<int order,int dir>
 class laplacianSphericalSymm
 {
@@ -141,13 +144,91 @@ public:
 	template<class T>
 	static inline Real call(  T & phi, int i , int j, int k, const Real *dx, const Real x)
 	{
-		#if AMREX_SPACEDIM == 1
+	
 		return laplacian<order,dir>::x(phi,i,j,k,dx[0]) + 2*gradient<order,dir>::x(phi,i,j,k,dx[0])*1./x
 		;
-		#endif
-
+		
 	};
 
+
+
+};
+
+#endif
+
+
+enum StencilDirection { Central = 0 , Forward = 1, Backward = -1  };
+
+
+
+template<int order_accuracy , int order_derivative, StencilDirection dir = StencilDirection::Central >
+class stencil1D;
+
+
+
+template<>
+class stencil1D<2,1,StencilDirection::Central>
+{
+	public:
+	static auto x( const Array4<Real> & data, int i , int j, int k ) 
+	{
+		return 0.5 * data(i+1 , j , k ) - 0.5* data(i-1,j,k);
+	} ;
+
+
+	static auto x_nodal( const Array4<Real> & data, int i , int j, int k ) 
+	{
+		return data(i+1 , j , k ) - data(i,j,k);
+	} ;
+
+
+	static auto y( const Array4<Real> & data, int i , int j , int k )
+	{
+		return 0.5 * data(i , j + 1 , k ) - 0.5* data(i,j-1,k);
+	} ;
+
+
+	static auto y_nodal( const Array4<Real> & data, int i , int j , int k )
+	{
+		return data(i , j + 1 , k ) -  data(i,j,k);
+
+	} ;
+
+
+	static auto z( const Array4<Real> & data, int i , int  j, int k )
+	{
+		return 0.5 * data(i , j , k+1 ) - 0.5* data(i,j,k-1);
+	} ;
+
+	static auto z_nodal( const Array4<Real> & data, int i , int  j, int k )
+	{
+		return data(i , j , k+1 ) - data(i,j,k);
+	} ;
+
+
+
+};
+
+template<>
+class stencil1D<2,2,StencilDirection::Central >
+{
+public:
+	template<class T>
+	static inline Real x(  T & phi, int i , int j, int k)
+	{
+		return  (phi(i-1,j,k) + phi(i+1,j,k) - 2*phi(i,j,k) );
+	};
+	template<class T>
+	static inline Real y(  T & phi, int i , int j, int k, const Real dx)
+	{
+		return  (phi(i,j-1,k) + phi(i,j+1,k) - 2*phi(i,j,k) ); 
+	};
+
+	template<class T>
+	static inline Real z(  T & phi, int i , int j, int k, const Real dx)
+	{
+		return  (phi(i,j,k-1) + phi(i,j+1,k+1) - 2*phi(i,j,k) ) ; 
+	};
 
 
 };
@@ -156,4 +237,4 @@ public:
 
 
 
-
+#endif

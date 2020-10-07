@@ -7,9 +7,19 @@ using namespace amrex;
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 namespace py = pybind11;
+#include <AMReX_MLMG.H>
+#include <AMReX_BCRec.H>
+
+static_assert(AMREX_SPACEDIM == 1);
 
 
+enum BC { PERIODIC = 0, DRICHLET = 1 , NEUMANNN = 2 };
 
+LinOpBCType toLinOpBCType( const BC & bc );
+
+using bc_t = std::array<BC,AMREX_SPACEDIM> ;
+
+std::tuple<std::array<BC,AMREX_SPACEDIM>, std::array<BC,AMREX_SPACEDIM> > readBC(const json_t & j);
 
 #if AMREX_SPACEDIM == 3
 #define LOOP( state , geom  ) \
@@ -84,7 +94,7 @@ void normalize(  MultiFab & phi_real ,  MultiFab & phi_imag,  const Geometry & g
 
 
 
-std::tuple< BoxArray , Geometry , DistributionMapping   >  
+std::tuple< BoxArray , Geometry , DistributionMapping  , std::array<BC,AMREX_SPACEDIM> , std::array<BC,AMREX_SPACEDIM> >  
 createGeometry( const json_t & settings);
 
 template<class evaluator_t >
@@ -114,5 +124,6 @@ void fill( MultiFab & state, Geometry & geom,  const evaluator_t & evaluator )
 
 void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom);
 
+BCRec toMultiFabBC(const std::array<BC,AMREX_SPACEDIM> & bc_low, const std::array<BC,AMREX_SPACEDIM> & bc_high  );
 
 #endif

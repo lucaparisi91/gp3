@@ -14,4 +14,4 @@ def stencil( stencilPoints , d ):
     return a
 
 if __name__ == "__main__":
-    print(stencil([0,1,2,3,4] , 2))
+    print(stencil([1,3,5] , 1))

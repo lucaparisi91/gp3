@@ -1,6 +1,8 @@
 #include "evaluate.h"
 #include <AMReX_PlotFileUtil.H>
 #include "operators.h"
+#include "tools.h"
+
 
 
 #if AMREX_SPACEDIM == 3
@@ -53,8 +55,6 @@
 	     		for (int i=lo[0];i<=hi[0];i++) \
 	     	{ 
 
-
-
 #define END_EVALUATION_LOOP }\
 			 }\
 			 }
@@ -63,10 +63,13 @@
 
 class functional
 {
+	
 public:
 	functional(const json_t & j);
-    functional() : lap(NULL),laplacianOwned(false) {}
-    virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ );
+    functional() : lap(NULL),laplacianOwned(false) {
+	
+	}
+    virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ , bc_t & bc_low, bc_t & bc_high);
 
     virtual void evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
@@ -79,7 +82,7 @@ public:
     auto & getDistributionMapping() {return _dm;}
 
     auto & getLaplacian() {return *lap;}
-
+	
     ~functional();
 
 	void setLaplacianOperator(laplacianOperator * lap_);
@@ -91,6 +94,11 @@ public:
     int _laplacianOrder;
     op *lap;
 	bool laplacianOwned;
+
+	std::array<BC, AMREX_SPACEDIM> bc_lo;
+	std::array<BC, AMREX_SPACEDIM> bc_hi;
+
+	
 };
 
 class harmonicFunctional : public functional

@@ -8,8 +8,9 @@ import io
 import os
 import sys
 
+
 class geometry:
-	def __init__(self,shape,domain,symmetry="none"):
+	def __init__(self,shape,domain,symmetry="none",coordinates="cartesian",bc=None):
 		self.shape=shape
 
 		self.lower_edges= [bound[0] for bound in domain]
@@ -17,7 +18,9 @@ class geometry:
 		self.step = [ (h - l)/n for l,h,n in zip(self.lower_edges,self.higher_edges,self.shape) ]
 		self.dimensions=len(shape)
 		self.symmetry=symmetry
-
+		self.coordinates=coordinates
+		self.bc=bc
+		
 
 	def positions(self,axis):
 
@@ -59,22 +62,29 @@ class gp_simulation:
 		data_imag=self.yt_input_imag.all_data()
 		self.geo=geo
 
-		if geo.symmetry == "cylindrical" :
+		if geo.coordinates == "cylindrical" :
 			self.r=np.array(data_real.fcoords)[:,0]
 			self.z=np.array(data_real.fcoords)[:,1]
 			self.r=self.r.reshape(geo.shape)
 			self.z=self.z.reshape(geo.shape)
+
+
 		else:
 
-			if (  geo.dimensions >= 1 ):
-				self.x=np.array(data_real.fcoords)[:,0].reshape(geo.shape)
+			if geo.coordinates == "spherical":
+				self.r=np.array(data_real.fcoords)[:,0]
 
-				if (geo.dimensions >= 2):
-					self.y=np.array(data_real.fcoords)[:,1].reshape(geo.shape)
+			else:
 
-					if (geo.dimensions >= 3):
-						self.z=np.array(data_real.fcoords)[:,2].reshape(geo.shape)
-				
+				if (  geo.dimensions >= 1 ):
+					self.x=np.array(data_real.fcoords)[:,0].reshape(geo.shape)
+
+					if (geo.dimensions >= 2):
+						self.y=np.array(data_real.fcoords)[:,1].reshape(geo.shape)
+
+						if (geo.dimensions >= 3):
+							self.z=np.array(data_real.fcoords)[:,2].reshape(geo.shape)
+					
 		
 		self.phi_real=self.yt_input_real.all_data()["phi"]
 		self.phi_imag=self.yt_input_imag.all_data()["phi"]
@@ -88,19 +98,25 @@ class gp_simulation:
 
 		if self.geo.dimensions == 3:
 			return (self.x, self.y,self.z)
-		if self.geo.symmetry == "cylindrical":
+		if self.geo.coordinates == "cylindrical":
 			return (self.r,self.z)
-			
+		if self.geo.coordinates == "spherical":
+			return (self.r)
+		
 
 	def _integrate(self,y):
-		if self.geo.symmetry == "cylindrical":
+		if self.geo.coordinates == "cylindrical":
 			return 2*pi*np.sum(y*self.r)*self.geo.step[0] *self.geo.step[1]
 		else:
-			res = np.sum(y)
-			dv=1
-			for i in range(self.geo.dimensions):
-				dv*=self.geo.step[i]
-			return res*dv
+
+			if self.geo.coordinates == "spherical":
+				return 4*pi*np.sum(y*self.r**2)*self.geo.step[0]
+			else:
+				res = np.sum(y)
+				dv=1
+				for i in range(self.geo.dimensions):
+					dv*=self.geo.step[i]
+				return res*dv
 
 	
 	def average(self,f):

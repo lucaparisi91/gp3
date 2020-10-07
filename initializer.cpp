@@ -12,5 +12,6 @@ initializer::initializer() : isInitialized(false)
 
     operatorFac.registerop<stencilLaplacianOperator>();
     operatorFac.registerop<amrexLaplacianOperator>();
+    operatorFac.registerop<stencilLaplacian<2> >();
 
 }
