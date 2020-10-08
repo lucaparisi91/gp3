@@ -43,7 +43,7 @@ include_directories(${MPI_INCLUDE_PATH} external/json/single_include external/py
 
 #set( CMAKE_PREFIX_PATH AMReX)
 set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp operators.cpp
-functional.cpp initializer.cpp plotFile.cpp)
+functional.cpp initializer.cpp plotFile.cpp gpDropletFunctional3D.cpp)
 
 
 add_library(gp_lib ${GP_FILES} )

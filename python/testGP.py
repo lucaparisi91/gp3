@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pylab as plt 
 from math import *
 
-
 class testGeometry(unittest.TestCase):
 
     def test_initGeometry(self):
@@ -19,6 +18,7 @@ class testGeometry(unittest.TestCase):
         self.assertTrue(geo.positions(0).shape == shape )
         self.assertTrue(geo.positions(1).shape == shape )
         self.assertTrue(geo.positions(2).shape == shape )
+
 
 class testModel(unittest.TestCase):
 
@@ -165,7 +165,7 @@ class testModel(unittest.TestCase):
         plt.show()
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-3 )
 
-    
+
 
 class testRun(unittest.TestCase):
 
@@ -327,6 +327,46 @@ class testRun(unittest.TestCase):
         y= np.exp( - alpha * r2   ) + 0*1j
         gp1D_c.run(y, settings)
 
+
+    def test_gpDroplet3DSpherical(self):
+        
+        settings = { "geometry" : 
+            {
+                "shape" : [1000],
+                "domain" : [ [0,50.0] ],
+                "coordinates" : "spherical",
+                "bc" : [ "neumann" ]
+            },
+            "functional" : 
+	        {
+		        "name" : "gpDroplet3D",
+                "laplacian" : {
+                    "name" : "stencilLaplacian2",
+                    "order" : 2
+                }
+	        },
+            "run" : 
+	            {
+		        "label" : "gpGroundState",
+		        "stepsPerBlock" : 10000,
+                "nBlocks" : 1000,
+		        "timeStep" : 1e-4,
+		        "stepper" : "RK4",
+		        "imaginaryTime" : True
+	        },
+	        "normalization" : 15,
+	        "components" : 1 , 
+            "name" : "testGPDropletSpherical"
+
+        }
+
+
+        geo = gp.geometry(**settings["geometry"])
+        r2 =  geo.positions(0)**2
+
+        alpha=0.1;
+        y= np.exp( - alpha * r2   ) + 0*1j
+        gp1D_c.run(y, settings)
 
 
 

@@ -57,8 +57,13 @@ class gp_simulation:
 class gp_simulations:
 
     def __init__(self,dirname=None):
+        self.simulations=[]
+
         if dirname is not None:
             self.load(dirname)
+    def __len__(self):
+        return len(self.simulations)
+
     def load(self,dirname):
         
          sub_dirs=[f for f in listdir(dirname) if not isfile(join(dirname, f))]

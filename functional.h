@@ -1,3 +1,8 @@
+#ifndef FUNCTIONAL_H
+#define FUNCTIONAL_H
+
+
+
 #include "evaluate.h"
 #include <AMReX_PlotFileUtil.H>
 #include "operators.h"
@@ -128,3 +133,4 @@ class harmonicFunctional : public functional
 
 
 
+#endif
