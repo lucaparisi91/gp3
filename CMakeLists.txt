@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(gp)
-set(DIM 1)
+set(DIM 3)
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -63,7 +63,7 @@ target_link_libraries( ${pythonBindingTarget} PRIVATE amrex ${MPI_LIBRARIES} gfo
 #add_executable(main main.cpp run.cpp)
 #target_link_libraries( main PUBLIC amrex ${MPI_LIBRARIES} gfortran pthread)
 
-set (TEST_SOURCES tst/model-test.cpp)
+set (TEST_SOURCES tst/model-test.cpp tst/test-multilevel.cpp)
 add_executable(tst tst/main.cpp ${TEST_SOURCES})
 target_link_libraries(tst PRIVATE  gtest  ${MPI_LIBRARIES} amrex arrow parquet)
 target_link_libraries(tst PUBLIC  gp_lib)

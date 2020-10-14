@@ -12,19 +12,6 @@
 
 namespace fs = std::filesystem;
 
-auto createBoxesScheme()
-{
-    auto  field_box = arrow::field("box", arrow::int32() ) ;
-    
-    auto  field_left_x = arrow::field("left_x", arrow::float64() ) ;
-    auto  field_right_x = arrow::field("right_x", arrow::float64() ) ;
-    auto field_index_left_x = arrow::field("index_left_x", arrow::int32() );
-    auto field_index_right_x = arrow::field("index_right_x", arrow::int32() ) ;
-    auto  field_ghosts_x = arrow::field("ghosts_x", arrow::int32() ) ;
-    
-    return arrow::schema({field_box,field_left_x, field_right_x, field_index_left_x, field_index_right_x , field_ghosts_x});
-
-}
 
 void writeSingleLevel(MultiFab & phi_real, MultiFab & phi_imag , Geometry & geom, const std::string & dirname, Real time)
 {
@@ -63,19 +50,46 @@ void writeSingleLevel(MultiFab & phi_real, MultiFab & phi_imag , Geometry & geom
         Array4< Real> const & phi_imag_array = phi_imag[mfi].array();
 
         json_t jBox;
-        jBox["shape"]= {  hiValid[0] - loValid[0] + 1  } ;
-        jBox["lower_index"] ={loValid[0]};
-        jBox["ghosts"]= { {  loValid[0] -lo[0] , hi[0] - hiValid[0] }  } ;
-        jBox["domain"]={ { prob_lo[0] + loValid[0]*dx[0], prob_lo[0] + (hiValid[0] + 1 )*dx[0]   }};
+        jBox["shape"]= { AMREX_D_DECL(
+         hiValid[0] - loValid[0] + 1, hiValid[1] - loValid[1] + 1,hiValid[2] - loValid[2] + 1  )  } ;
+        jBox["lower_index"] ={AMREX_D_DECL(loValid[0] ,loValid[1],loValid[1] )};
+        
+        #define COMMA ,
+
+        jBox["ghosts"]= { AMREX_D_DECL(
+             {  loValid[0] -lo[0] COMMA hi[0] - hiValid[0] },
+             {  loValid[1] -lo[1] COMMA hi[1] - hiValid[1] },
+             {  loValid[2] -lo[2] COMMA hi[2] - hiValid[2] }
+             
+             
+              ) } ;
+
+        jBox["domain"]={ AMREX_D_DECL( 
+            
+            { prob_lo[0] + loValid[0]*dx[0] COMMA prob_lo[0] + (hiValid[0] + 1 )*dx[0]   },
+            { prob_lo[1] + loValid[1]*dx[1] COMMA prob_lo[1] + (hiValid[1] + 1 )*dx[1]   },
+            { prob_lo[2] + loValid[2]*dx[2] COMMA prob_lo[2] + (hiValid[2] + 1 )*dx[2]   }
+            
+            )};
+
         jBox["index"] = 0;
         jBoxes.push_back(jBox);
 
+        size_t size = 1;
 
         // save the fab data in parquet files
-        size_t  size = hi[0] - lo[0] + 1;
-        int j=0;
-        int k=0;
-        int i=lo[0];
+        for (int d=0;d<AMREX_SPACEDIM;d++)
+        {
+            size *= hi[d] - lo[d] + 1;
+        }
+        #if AMREX_SPACEDIM == 1
+        int j=0; int k=0; int i=lo[0];
+        #endif 
+
+
+        #if AMREX_SPACEDIM == 3
+        int j=lo[1]; int k=lo[2]; int i=lo[0];        
+        #endif
 
         arrow::DoubleBuilder builder;
         builder.AppendValues( &phi_real_array(i,j,k)     ,  size);

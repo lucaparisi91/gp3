@@ -246,7 +246,6 @@ template<int order>
             {
                 newData(i,j,k)= stencil1D<order,2>::x(oldData,i,j,k) * dxInverseSquare[0];
                 
-
             }
 #endif
 

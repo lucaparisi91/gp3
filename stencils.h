@@ -1,7 +1,6 @@
 #ifndef STENCILS_H
 #define STENCILS_H
 
-
 enum {CENTRAL = 0 , FORWARD = 1, BACKWARD= 2} directionDeriv;
 
 template<int i , int dir=CENTRAL>
@@ -209,25 +208,26 @@ class stencil1D<2,1,StencilDirection::Central>
 
 };
 
+
 template<>
 class stencil1D<2,2,StencilDirection::Central >
 {
 public:
 	template<class T>
-	static inline Real x(  T & phi, int i , int j, int k)
+	static inline Real x( const T & phi, int i , int j, int k)
 	{
 		return  (phi(i-1,j,k) + phi(i+1,j,k) - 2*phi(i,j,k) );
 	};
 	template<class T>
-	static inline Real y(  T & phi, int i , int j, int k, const Real dx)
+	static inline Real y( const T & phi, int i , int j, int k)
 	{
 		return  (phi(i,j-1,k) + phi(i,j+1,k) - 2*phi(i,j,k) ); 
 	};
 
 	template<class T>
-	static inline Real z(  T & phi, int i , int j, int k, const Real dx)
+	static inline Real z(  const T & phi, int i , int j, int k)
 	{
-		return  (phi(i,j,k-1) + phi(i,j+1,k+1) - 2*phi(i,j,k) ) ; 
+		return  (phi(i,j,k-1) + phi(i,j,k+1) - 2*phi(i,j,k) ) ; 
 	};
 
 

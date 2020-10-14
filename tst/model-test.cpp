@@ -70,8 +70,6 @@ TEST(initialization, harmonic)
     fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
 #endif
 
-
-
     LOOP(phi_real_old,geom)
 
 #if AMREX_SPACEDIM==3
@@ -198,20 +196,12 @@ TEST(initialization,harmonic_spherical)
 #endif
 
 
-
-
-
-
-
-
-
-#if AMREX_SPACEDIM == 1
-
 TEST(initialization, harmonic_stencil2)
 {
+    
     auto settings = R"( 
         { 
-        "geometry" : {"shape" : [1000] , "domain" : [ [-5,5] ],"coordinates" : "cartesian" } } )"_json;
+        "geometry" : {"shape" : [200 , 200 , 200] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ],"coordinates" : "cartesian" } } )"_json;
     
     auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
 
@@ -305,6 +295,7 @@ TEST(initialization, harmonic_stencil2)
 
 
 
+#if AMREX_SPACE_DIM == 1
 
 TEST(initialization, harmonic_stencil2_spherical)
 {
@@ -378,9 +369,14 @@ TEST(initialization, harmonic_stencil2_spherical)
 
 }
 
+#endif
+
+
 
 TEST(save, parquetTest)
 {
+    #if AMREX_SPACEDIM == 1
+
     auto settings = R"( 
         { 
         "geometry" : {"shape" : [1000] , 
@@ -388,6 +384,22 @@ TEST(save, parquetTest)
         "coordinates" : "spherical" ,
         "bc" : ["neumann"]
         } } )"_json;
+    #endif
+
+
+    #if AMREX_SPACEDIM == 3
+
+    auto settings = R"( 
+        { 
+        "geometry" : {"shape" : [100,100,100] , 
+        "domain" : [ [-5,5],[-5,5],[-5,5] ],
+        "coordinates" : "cartesian" ,
+        "bc" : ["periodic","periodic","periodic"]
+        } } )"_json;
+
+    #endif
+
+
         
     auto [box , geom , dm, low_bc, high_bc] = createGeometry(settings["geometry"]);
 
@@ -405,8 +417,16 @@ TEST(save, parquetTest)
 
     Real alpha = 1;
 
-
+    #if AMREX_SPACEDIM == 1
     fill(phi_real_old,geom, [alpha](Real x) {return exp(- alpha *(x*x ));}  ) ;
+    #endif
+
+    #if AMREX_SPACEDIM == 3
+    fill(phi_real_old,geom, [alpha](Real x,Real y , Real z) {return exp(- alpha *(x*x + y*y + z*z ));}  ) ;
+    #endif
+
+
+
 
     phi_real_old.setDomainBndry(0, 0, 1, geom)   ;
     phi_imag_old.setDomainBndry(0, 0, 1, geom)   ;
@@ -418,13 +438,21 @@ TEST(save, parquetTest)
 
 
     LOOP(phi_real_old,geom)
-
+    #if AMREX_SPACE_DIM == 1
      auto r = prob_lo[0] +  (i + 0.5) * dx[0] ;
+     #endif
+
+    #if AMREX_SPACEDIM == 3
+     auto x = prob_lo[0] +  (i + 0.5) * dx[0] ;
+     auto y = prob_lo[0] +  (j + 0.5) * dx[1] ;
+     auto z = prob_lo[0] +  (k + 0.5) * dx[2] ;
+
+     auto r = std::sqrt( x*x + y*y + z*z);
+     #endif
+     
     ASSERT_NEAR(data(i,j,k), exp(-alpha*r*r),1e-5 ) ;
     ENDLOOP
-    
+
     writeSingleLevel(phi_real_old,phi_imag_old,geom, "out-test");
 
 }
-
-#endif

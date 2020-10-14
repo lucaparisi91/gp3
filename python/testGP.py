@@ -4,6 +4,8 @@ import gp1D_c
 import numpy as np
 import matplotlib.pylab as plt 
 from math import *
+import gp3D_c
+
 
 class testGeometry(unittest.TestCase):
 
@@ -22,9 +24,8 @@ class testGeometry(unittest.TestCase):
 
 class testModel(unittest.TestCase):
 
-    def test_harmonic(self):
+    def test_harmonic3D(self):
 
-        
         settings = { "geometry" : 
             {
                 "shape" : [128,128,128],
@@ -37,7 +38,7 @@ class testModel(unittest.TestCase):
 		        "name" : "harmonic",
 		        "omega" : 1.0 , 
                 "laplacian" : {
-                    "name" : "amrexLaplacian",
+                    "name" : "stencilLaplacian2",
                     "order" : 2
                 }
 	        }
@@ -55,6 +56,7 @@ class testModel(unittest.TestCase):
         y2=gp3D_c.evaluate(y,settings)
 
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-2 )
+
 
     def test_harmonicSphericalCart(self):
 
@@ -89,7 +91,7 @@ class testModel(unittest.TestCase):
         plt.plot(geo.positions(0).flatten() , y2.flatten()   )
         plt.plot(geo.positions(0).flatten() , hy, label="exact")
         plt.legend()
-        plt.show()
+        
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-3 )
     def test_harmonic1D(self):
 
@@ -125,7 +127,7 @@ class testModel(unittest.TestCase):
         plt.plot(geo.positions(0).flatten() , y2.flatten()   )
         plt.plot(geo.positions(0).flatten() , hy, label="exact")
         plt.legend()
-        plt.show()
+        
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-3 )
 
     def test_harmonicSpherical(self):   
@@ -162,14 +164,14 @@ class testModel(unittest.TestCase):
         plt.plot(geo.positions(0).flatten() , y2.flatten()   )
         plt.plot(geo.positions(0).flatten() , hy, label="exact")
         plt.legend()
-        plt.show()
+        
         self.assertAlmostEqual( np.max( np.abs(np.real( y2 - hy))) , 0  , delta=1e-3 )
 
 
 
 class testRun(unittest.TestCase):
 
-    def test_harmonic(self):
+    def test_harmonic3D(self):
         settings = {	
             "geometry" : 
 	        {
@@ -194,7 +196,7 @@ class testRun(unittest.TestCase):
 		        "name" : "harmonic",
 		        "omega" : 1.0 , 
                 "laplacian" : {
-                    "name" : "amrexLaplacian",
+                    "name" : "stencilLaplacian2",
                     "order" : 2
                 }
 	        }
@@ -371,5 +373,4 @@ class testRun(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
-    
+    unittest.main()    

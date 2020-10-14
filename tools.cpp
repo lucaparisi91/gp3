@@ -175,8 +175,15 @@ createGeometry( const json_t & settings)
     IntVect dom_hi(AMREX_D_DECL( shape[0]-1, shape[1]-1, shape[2]-1));
     Box domain(dom_lo, dom_hi);
     ba.define(domain);
-   //ba.maxSize(max_grid_size);
 
+    if (settings.contains("maxGridSize") )
+    {
+        int max_grid_size = settings["maxGridSize"].get<int>();
+
+        ba.maxSize(max_grid_size);
+
+    }
+   
     RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
                          {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
                         

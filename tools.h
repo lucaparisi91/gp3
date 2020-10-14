@@ -10,7 +10,6 @@ namespace py = pybind11;
 #include <AMReX_MLMG.H>
 #include <AMReX_BCRec.H>
 
-static_assert(AMREX_SPACEDIM == 1);
 
 
 enum BC { PERIODIC = 0, DRICHLET = 1 , NEUMANNN = 2 };
