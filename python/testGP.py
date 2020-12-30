@@ -356,10 +356,9 @@ class testRun(unittest.TestCase):
 		        "stepper" : "RK4",
 		        "imaginaryTime" : True
 	        },
-	        "normalization" : 15,
+	        "normalization" : 19.,
 	        "components" : 1 , 
-            "name" : "testGPDropletSpherical"
-
+            "name" : "testGPDropletSphericalBins"
         }
 
 
@@ -369,8 +368,6 @@ class testRun(unittest.TestCase):
         alpha=0.1;
         y= np.exp( - alpha * r2   ) + 0*1j
         gp1D_c.run(y, settings)
-
-
 
 if __name__ == "__main__":
     unittest.main()    

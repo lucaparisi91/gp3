@@ -11,103 +11,115 @@
 #include "initializer.h"
 #include "plotFile.h"
 #include <AMReX_Orientation.H>
+#include <AMReX_Interpolater.H>
+#include <AMReX_FillPatchUtil.H>
+#include <AMReX_Amr.H>
+#include <AMReX_AmrLevel.H>
+#include "AmrCoreDiff.h"
 
-/*
+
 
 TEST(twoLevel, laplacian)
 {
+    Vector<int> is_periodic(AMREX_SPACEDIM,1);
+    
+    auto settingsCoarse = R"( 
+        { 
+        "geometry" : {"shape" : [20,20, 20] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"} } )"_json;
+
+    auto settingsFine = R"( 
+        { 
+        "geometry" : {"shape" : [40,40, 40] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"} } )"_json;
+
+    auto [baCoarse , geomCoarse , dmCoarse, low_bcCoarse, high_bcCoarse] = createGeometry(settingsCoarse["geometry"]);
+    auto [baFine , geomFine , dmFine, low_bcFine, high_bcFine] = createGeometry(settingsFine["geometry"]);
+
+    IntVect dom_lo(AMREX_D_DECL(       19 ,  19      ,  19  ));
+    IntVect dom_hi(AMREX_D_DECL(       28,   28 ,  28));
+
+    Box innerBox(dom_lo,dom_hi) ;
+    BoxArray innerBoxArray;
+    DistributionMapping dmInner(innerBoxArray);
+
+    innerBoxArray.define(innerBox);
+    int order = 2;
+    int refinementRatio=2;
     int nComp=1;
-    int nGhost = 1;
-     auto settingsCoarse = R"( 
-        { 
-        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"} } )"_json;
-
-    auto settingsFine =  R"( 
-        { 
-        "geometry" : {"shape" : [256,256, 256] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] ,  "coordinates" : "cartesian" } } )"_json;
+    Vector<int> periodicity(AMREX_SPACEDIM,1);
 
 
-    auto [boxCoarse , geom , dmCoarse, low_bc, high_bc] = createGeometry(settingsCoarse["geometry"]);
-    auto [boxFine , geomFine , dmFine, low_bcFine, high_bcFine] = createGeometry(settingsCoarse["geometry"]);
-
-    Box innerDomain( {30,30,30},{60,60,60});
-    BoxArray baInner;
-
-    baInner.define(innerDomain);
-
-    DistributionMapping dmInner(baInner);
-
-    MultiFab coarseMultiFab( boxCoarse,dmCoarse,nComp,nGhost);
-    MultiFab coarseTmp( boxCoarse,dmCoarse,nComp,nGhost);
-
-    
-    MultiFab innerMultiFab(baInner,dmInner,nComp,nGhost);
-
-    innerMultiFab=0.;
-    coarseTmp=0.;
+    // fill the coarse multifab width a gaussian
+    Real alpha=1.;
+    MultiFab mfFine(baFine,dmFine,nComp,order-1);
+    MultiFab mfCoarse(baCoarse,dmCoarse,nComp,order-1);
 
 
-    Real alpha = 0.01;
-
-    fill( coarseMultiFab,geom, [alpha](Real x,Real y , Real z) {return exp(- alpha *(x*x + y*y + z*z ));}  ) ;
-
-    // creates and fill a coarse boundary register
-    auto baInnerCoarsened = baInner.coarsen(2);
-    amrex::DistributionMapping dmInnerCoarsened(baInner);
-
-    BndryRegister coarseBoundaryRegister(baInnerCoarsened,dmInnerCoarsened,0,1,0,1);
-    coarseBoundaryRegister.copyFrom(coarseMultiFab, 1, 0, 0, 1 ,geom.periodicity());
-
-    Orientation lowXOr( 0, amrex::Orientation::Side::low);
-
-    coarseBoundaryRegister[lowXOr].copyTo(coarseTmp,1,0,0,1, geom.periodicity());
-
-     LOOP(coarseTmp,geom)
-    
-    if ( data(i,j,k) != 0)
+     for ( MFIter mfi( mfCoarse); mfi.isValid(); ++mfi )
     {
-        std::cout << data(i,j,k) << std::endl;
+         const Real* dx = geomCoarse.CellSize();
+        const Real* prob_lo = geomCoarse.ProbLo();
+
+        const Box& bx = mfi.validbox();
+        const int* lo = bx.loVect();
+        const int *hi= bx.hiVect();
+        Array4<  Real> const & dataArray = mfCoarse[mfi].array();
+        
+        for (int k=lo[2];k<=hi[2];k++)
+            for (int j=lo[1];j<=hi[1];j++) 
+                for (int i=lo[0];i<=hi[0];i++)
+                    {
+                        Real x =  prob_lo[0] + (i+0.5)*dx[0];
+                        Real y =  prob_lo[1] + (i+0.5)*dx[1];
+                        Real z =  prob_lo[2] + (i+0.5)*dx[2];
+
+                        Real r2=x*x + y*y + z*z;
+                        dataArray(i,j,k,0)=exp(-alpha*r2);
+                    }
     }
 
+    mfFine=0;
+
+    auto bcRec = toMultiFabBC(low_bcCoarse,high_bcCoarse);
+
+    amrex::CellQuadratic interp;
+
+    //amrex::FillPatchTwoLevels(mfCoarse,{1,1,1},0.0,{&mfCoarse},{0.},{&mfFine},{0.0},0,0,1,geomCoarse,geomFine,BC::PERIODIC,0,BC::PERIODIC,0,{2,2,2},&interp,{bcRec},0);
+
+    IntVect ghosts{1,1,1};
     
-     ENDLOOP
-
-
-
-
-
-
-    // creates a fine boundry register
-    
-    auto bc =toMultiFabBC( low_bc,high_bc);
-    amrex::InterpBndryData fineBoundary(baInner,dmInner,1,geomFine );
-    fineBoundary.setBndryValues (coarseBoundaryRegister, 0,  innerMultiFab , 0, 0, 1, {2,2,2}, bc);
-    
-
-    fineBoundary[lowXOr].copyTo(innerMultiFab,1,0,0,1, geomFine.periodicity());
-
-     LOOP( innerMultiFab,geom)
-    
-    if ( data(i,j,k) != 0)
-    {
-        std::cout << data(i,j,k) << std::endl;
-    }
-    
-     ENDLOOP
-
-
-
-
-
-
-
-
-    
-    
-
-
-
-
 }
 
-*/
+
+TEST(run, amrLevel)
+{
+
+    std::array<Real,AMREX_SPACEDIM> lower_edges={-3,-3,-3};
+    std::array<Real,AMREX_SPACEDIM> higher_edges={3,3,3};
+
+
+    RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
+                         {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
+    
+    Vector<int> nCells {32,32,32};
+
+    int max_level = 1;
+
+    AmrCoreDiff amr_core_diff(& real_box,max_level,nCells,0);
+
+    amr_core_diff.InitData();
+
+    amr_core_diff.ComputeDt();
+
+    amr_core_diff.WritePlotFile();
+    
+    amr_core_diff.timeStepWithSubcycling(0, 0, 1);
+
+
+    //amr_core_diff.AdvancePhiAtLevel(0,0,1e-3,0,1);
+    //amr_core_diff.AdvancePhiAtLevel(1,0,1e-3,0,1);
+
+  
+    amr_core_diff.WritePlotFile();
+
+                        
+}

@@ -29,10 +29,13 @@ find_package(PythonLibs)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 
-set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}   )
 set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}  )
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Wfatal-errors -std=gnu++17")
+set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -O0 -Wfatal-errors -std=gnu++17")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wfatal-errors -std=gnu++17")
+
+
+set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}   )
+
 
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 message(${CMAKE_SOURCE_DIR})
@@ -63,7 +66,8 @@ target_link_libraries( ${pythonBindingTarget} PRIVATE amrex ${MPI_LIBRARIES} gfo
 #add_executable(main main.cpp run.cpp)
 #target_link_libraries( main PUBLIC amrex ${MPI_LIBRARIES} gfortran pthread)
 
-set (TEST_SOURCES tst/model-test.cpp tst/test-multilevel.cpp)
+set (TEST_SOURCES tst/model-test.cpp tst/test-multilevel.cpp tst/AmrLevelDiff.cpp tst/LevelBldDiff.cpp tst/AmrCoreDiff.cpp) 
+ 
 add_executable(tst tst/main.cpp ${TEST_SOURCES})
 target_link_libraries(tst PRIVATE  gtest  ${MPI_LIBRARIES} amrex arrow parquet)
 target_link_libraries(tst PUBLIC  gp_lib)

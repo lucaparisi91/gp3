@@ -85,7 +85,7 @@ void save(MultiFab & realWave, MultiFab & imagWave, Geometry & geom , const json
 
 void run(py::array_t<std::complex<Real> > initialCondition , const json_t & settings   )
 {
-
+    
     initializer::instance().init();
     auto [ box, geom , dm, low_bc , high_bc] = createGeometry(settings["geometry"]);
 
