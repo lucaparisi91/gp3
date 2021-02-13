@@ -17,8 +17,6 @@
 #include <AMReX_AmrLevel.H>
 #include "AmrCoreDiff.h"
 
-
-
 TEST(twoLevel, laplacian)
 {
     Vector<int> is_periodic(AMREX_SPACEDIM,1);
@@ -48,7 +46,7 @@ TEST(twoLevel, laplacian)
     Vector<int> periodicity(AMREX_SPACEDIM,1);
 
 
-    // fill the coarse multifab width a gaussian
+    // fill the coarse multifab with a gaussian
     Real alpha=1.;
     MultiFab mfFine(baFine,dmFine,nComp,order-1);
     MultiFab mfCoarse(baCoarse,dmCoarse,nComp,order-1);
@@ -93,33 +91,40 @@ TEST(twoLevel, laplacian)
 TEST(run, amrLevel)
 {
 
-    std::array<Real,AMREX_SPACEDIM> lower_edges={-3,-3,-3};
-    std::array<Real,AMREX_SPACEDIM> higher_edges={3,3,3};
+    std::array<Real,AMREX_SPACEDIM> lower_edges={-5,-5,-5};
+    std::array<Real,AMREX_SPACEDIM> higher_edges={5,5,5};
+
+
 
 
     RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
                          {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
     
-    Vector<int> nCells {32,32,32};
+    Vector<int> nCells {64,64,64};
 
     int max_level = 1;
+    
 
     AmrCoreDiff amr_core_diff(& real_box,max_level,nCells,0);
 
     amr_core_diff.InitData();
 
+    auto norms=amr_core_diff.norm2();
+
+   
+    std::cout << "Norm " << norms[0] << std::endl;
+
     amr_core_diff.ComputeDt();
-
-    amr_core_diff.WritePlotFile();
     
-    amr_core_diff.timeStepWithSubcycling(0, 0, 1);
-
-
     //amr_core_diff.AdvancePhiAtLevel(0,0,1e-3,0,1);
     //amr_core_diff.AdvancePhiAtLevel(1,0,1e-3,0,1);
 
-  
-    amr_core_diff.WritePlotFile();
 
-                        
+    //amr_core_diff.WritePlotFile();
+
+    //amr_core_diff.AdvancePhiAtLevel(1,0,1e-3,0,1);
+    
+    //amr_core_diff.Evolve();
+
+  
 }

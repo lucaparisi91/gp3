@@ -6,7 +6,8 @@
 #include <AMReX_PlotFileUtil.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_PhysBCFunct.H>
-
+#include <AMReX_MLPoisson.H>
+#include <AMReX_MLMG.H>
 
 #ifdef AMREX_MEM_PROFILING
 #include <AMReX_MemProfiler.H>
@@ -30,6 +31,7 @@ AmrCoreDiff::AmrCoreDiff(const RealBox* rb, int max_level_in,
     // But the arrays for them have been resized.
 
     int nlevs_max = max_level + 1;
+
 
     istep.resize(nlevs_max, 0);
     nsubsteps.resize(nlevs_max, 1);
@@ -94,7 +96,26 @@ AmrCoreDiff::AmrCoreDiff(const RealBox* rb, int max_level_in,
     // with the lev/lev-1 interface (and has grid spacing associated with lev-1)
     // therefore flux_reg[0] is never actually used in the reflux operation
     flux_reg.resize(nlevs_max+1);
-    regrid_int=0;
+    regrid_int=10 ;
+    plot_int = 100;
+    max_step=10000;
+
+    blocking_factor={ };
+    n_error_buf={};
+
+    for (int i=0;i<nlevs_max + 1 ;i++)
+    {
+        blocking_factor.push_back({1,1,1});
+        n_error_buf.push_back({0,0,0});
+
+    }
+
+    for(int i=0;i<nlevs_max;i++)
+    {
+        geom[i].setPeriodicity({1,1,1});
+    }
+
+    advanceMethod = advanceMethod_t::FillPatchAdvance;
 
 }
 
@@ -168,7 +189,7 @@ AmrCoreDiff::InitData ()
         // start simulation from the beginning
         const Real time = 0.0;
         InitFromScratch(time);
-        //AverageDown();
+        AverageDown();
 
         if (chk_int > 0) {
             WriteCheckpointFile();
@@ -293,7 +314,10 @@ void AmrCoreDiff::MakeNewLevelFromScratch (int lev, Real time, const BoxArray& b
     int nComps = state.nComp();
 
 
-    Real alpha=1;
+    Real var=1;
+    Real alpha=1/(2.*var);
+
+
 #ifdef _OPENMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
@@ -334,15 +358,20 @@ AmrCoreDiff::ErrorEst (int lev, TagBoxArray& tags, Real /*time*/, int /*ngrow*/)
     const int   tagval = TagBox::SET;
 
     const MultiFab& state = phi_new[lev];
+    const auto problo = Geom(lev).ProbLoArray();
+    const auto dx     = Geom(lev).CellSizeArray();
+
+    
+    std::vector<Real> phi_lims{0.01,0.1,0.5,0.9} ;
 
 #ifdef _OPENMP
 #pragma omp parallel if(Gpu::notInLaunchRegion())
 #endif
     {
 	
-	for (MFIter mfi(state,TilingIfNotGPU()); mfi.isValid(); ++mfi)
+	for (MFIter mfi(state); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx  = mfi.tilebox();
+	    const Box& bx  = mfi.validbox();
         const auto statefab = state.array(mfi);
         const auto tagfab  = tags.array(mfi);
         const int* lo      = bx.loVect();
@@ -354,9 +383,16 @@ AmrCoreDiff::ErrorEst (int lev, TagBoxArray& tags, Real /*time*/, int /*ngrow*/)
                 for (int j=lo[1];j<=hi[1];j++) 
                     for (int i=lo[0];i<=hi[0];i++)
                         {
-                            if ( (i>=10 and i<=20) and
+
+                            Real x =  problo[0] + (i+0.5)*dx[0];
+                            Real y =  problo[1] + (j+0.5)*dx[1];
+                            Real z =  problo[2] + (k+0.5)*dx[2];
+
+                            Real r2=x*x + y*y + z*z;
+/*                              if ( (i>=10 and i<=20) and
                                 (j>=10 and j<=20) and 
-                                (k>=10 and k<=20) )
+                                (k>=10 and k<=20) )  */
+                            if (statefab(i,j,k,n)>=phi_lims[lev])    
                             {
                                 tagfab(i,j,k,n)=tagval;
                             }
@@ -400,6 +436,9 @@ AmrCoreDiff::ReadParameters ()
         pp.query("do_subcycle", do_subcycle);
     }
 }
+
+
+
 
 // set covered coarse cells to be the average of overlying fine cells
 void
@@ -583,7 +622,10 @@ AmrCoreDiff::timeStepWithSubcycling(int lev, Real time, int iteration)
 
                 // if there are newly created levels, set the time step
                 for (int k = old_finest+1; k <= finest_level; ++k) {
-                    dt[k] = dt[k-1] / MaxRefRatio(k-1);
+                    dt[k] = 
+                    //dt[k-1] / MaxRefRatio(k-1);
+                    dt[k-1];
+                     
                 }
             }
         }
@@ -623,7 +665,7 @@ AmrCoreDiff::timeStepWithSubcycling(int lev, Real time, int iteration)
 
         
 
-        //AverageDownTo(lev); // average lev+1 down to lev
+        AverageDownTo(lev); // average lev+1 down to lev
     }
     
 }
@@ -881,11 +923,23 @@ AmrCoreDiff::ReadCheckpointFile ()
 
 }
 
-// advance all levels for a single time step
-void
-AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration*/, int /*ncycle*/)
-{
 
+void
+AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int iteration, int ncycle)
+{
+    if (advanceMethod == advanceMethod_t::FillPatchAdvance )
+    {
+        AdvancePhiAtLevelFillPatch(lev, time, dt_lev, iteration, ncycle);
+    }
+    else if        (advanceMethod == advanceMethod_t::LinOpAdvance )
+    {
+        AdvancePhiAtLevelMLMG(lev, time, dt_lev, iteration, ncycle);
+    }   
+
+}
+void
+AmrCoreDiff::AdvancePhiAtLevelMLMG (int lev, Real time, Real dt_lev, int /*iteration*/, int /*ncycle*/)
+{
     constexpr int num_grow = 3;
 
     std::swap(phi_old[lev], phi_new[lev]);
@@ -894,8 +948,36 @@ AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration
 
     const auto dx = geom[lev].CellSizeArray();
 
+    LPInfo info;
+    MLPoisson mlpoisson({Geom(lev)}, {grids[lev]}, {dmap[lev]}, info);
 
-    // State with ghost cells
+    mlpoisson.setDomainBC({AMREX_D_DECL(LinOpBCType::Periodic,
+                                                LinOpBCType::Periodic,
+                                                LinOpBCType::Periodic)},
+                                  {AMREX_D_DECL(LinOpBCType::Periodic,
+                                                LinOpBCType::Periodic,
+                                                LinOpBCType::Periodic)});
+
+    if (lev>0)
+    {
+        mlpoisson.setCoarseFineBC(&phi_old[lev-1],MaxRefRatio(lev-1));
+    }
+
+    mlpoisson.setLevelBC(0,&phi_old[lev]);
+
+    MLMG mlmg(mlpoisson);
+
+    mlmg.apply({&phi_new[lev]},{&phi_old[lev]});
+
+
+    //phi_new[lev].mult(dt_lev,num_grow);
+
+    //phi_new[lev].plus(phi_old[lev],0,phi_new[lev].nComp(),num_grow);
+
+
+
+    
+  /*   // State with ghost cells
     MultiFab Sborder(grids[lev], dmap[lev], phi_new[lev].nComp(), num_grow);
     // State with ghost cells
     MultiFab S(grids[lev], dmap[lev], phi_new[lev].nComp(), 0);
@@ -904,8 +986,8 @@ AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration
      if (lev==1)
     {
         FillCoarsePatch(lev, time, Sborder, 0, phi_new[lev].nComp());
-        //S.copy(phi_old[lev]);
-        //Sborder.copy(S);
+        S.copy(phi_old[lev]);
+        Sborder.copy(S);
 
 
 
@@ -917,7 +999,7 @@ AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration
     }
     
     
-   
+    
 
     for (MFIter mfi(Sborder,TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -943,15 +1025,110 @@ AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration
                             std::cout << fab(i,j,k,n) << std::endl;
                             phi_new_fab(i,j,k,n)=
                             //fab(i,j,k,n);
-        /*                      std::pow( ( fab(i+1,j,k,n) - fab(i-1,j,k,n))/(dx[0]*2) ,2) +
-                            std::pow( ( fab(i,j+1,k,n) - fab(i,j-1,k,n))/(dx[1] *2),2) +
-                            std::pow( ( fab(i,j,k+1,n) - fab(i,j,k-1,n))/(dx[2]*2) ,2) ; 
-         */                    
+        
+        
+                            //   std::pow( ( fab(i+1,j,k,n) - fab(i-1,j,k,n))/(dx[0]*2) ,2) +
+                            // std::pow( ( fab(i,j+1,k,n) - fab(i,j-1,k,n))/(dx[1] *2),2) +
+                            // std::pow( ( fab(i,j,k+1,n) - fab(i,j,k-1,n))/(dx[2]*2) ,2) ; 
+                             
 
-                            /* 
-                             ( fab(i+1,j,k,n) + fab(i-1,j,k,n) -2* fab(i,j,k,n) )/(dx[0]*dx[0] )+
-                            ( fab(i,j+1,k,n) + fab(i,j-1,k,n) -2* fab(i,j,k,n) )/(dx[1]*dx[1]) +
-                            ( fab(i,j,k+1,n) + fab(i,j,k-1,n) -2* fab(i,j,k,n) )/(dx[2]*dx[2]); */
+                             
+                            //   ( fab(i+1,j,k,n) + fab(i-1,j,k,n) -2* fab(i,j,k,n) )/(dx[0]*dx[0] )+
+                            // ( fab(i,j+1,k,n) + fab(i,j-1,k,n) -2* fab(i,j,k,n) )/(dx[1]*dx[1]) +
+                            // ( fab(i,j,k+1,n) + fab(i,j,k-1,n) -2* fab(i,j,k,n) )/(dx[2]*dx[2]);  
+
+                            ( -1./12. * fab(i-2,j,k,n) + 4./3 *fab(i-1,j,k,n) -5./2* fab(i,j,k,n) + 4/3.*fab(i+1,j,k,n)  -1./12*fab(i+2,j,k,n)  )/(dx[0]*dx[0] ) + 
+                            ( -1./12. * fab(i,j-2,k,n) + 4./3 *fab(i,j-1,k,n) -5./2* fab(i,j,k,n) + 4/3.*fab(i,j+1,k,n)  -1./12*fab(i,j+2,k,n)  )/(dx[1]*dx[1] ) +
+                            ( -1./12. * fab(i,j,k-2,n) + 4./3 *fab(i,j,k-1,n) -5./2* fab(i,j,k,n) + 4/3.*fab(i,j,k+1,n)  -1./12*fab(i,j,k+2,n)  )/(dx[2]*dx[2] );
+
+
+                            
+
+
+
+
+
+                        }
+    } */
+    
+}
+
+// advance all levels for a single time step
+void
+AmrCoreDiff::AdvancePhiAtLevelFillPatch (int lev, Real time, Real dt_lev, int /*iteration*/, int /*ncycle*/)
+{
+
+    constexpr int num_grow = 3;
+
+    std::swap(phi_old[lev], phi_new[lev]);
+    t_old[lev] = t_new[lev];
+    t_new[lev] += dt_lev;
+
+    const auto dx = geom[lev].CellSizeArray();
+
+    
+
+
+    
+   // State with ghost cells
+    MultiFab Sborder(grids[lev], dmap[lev], phi_new[lev].nComp(), num_grow);
+    // State with ghost cells
+    MultiFab S(grids[lev], dmap[lev], phi_new[lev].nComp(), 0);
+    
+
+     if (lev==1)
+    {
+        FillCoarsePatch(lev, time, Sborder, 0, phi_new[lev].nComp());
+        S.copy(phi_old[lev]);
+        Sborder.copy(S);
+
+
+
+    }
+    else
+    {
+        FillPatch(lev, time, Sborder, 0, Sborder.nComp());
+    
+    }
+    
+    
+    
+
+    for (MFIter mfi(Sborder,TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        Array4<Real> const & fab = Sborder[mfi].array();
+        Array4<Real> const & phi_new_fab = phi_new[lev][mfi].array();    
+        const Box& box = mfi.tilebox();
+        const int* lo      = box.loVect();
+        const int* hi      = box.hiVect();
+        const auto problo = Geom(lev).ProbLoArray();
+        const auto dx     = Geom(lev).CellSizeArray();
+
+        for(int n=0;n<Sborder.nComp();n++)
+            for (int k=lo[2];k<=hi[2];k++)
+                for (int j=lo[1];j<=hi[1];j++) 
+                    for (int i=lo[0];i<=hi[0];i++)
+                        {
+                            Real x =  problo[0] + (i+0.5)*dx[0];
+                            Real y =  problo[1] + (j+0.5)*dx[1];
+                            Real z =  problo[2] + (k+0.5)*dx[2];
+
+                            Real r2=x*x + y*y + z*z;
+
+                            //std::cout << fab(i,j,k,n) << std::endl;
+                            phi_new_fab(i,j,k,n)=
+                            //fab(i,j,k,n);
+        
+        
+                            //   std::pow( ( fab(i+1,j,k,n) - fab(i-1,j,k,n))/(dx[0]*2) ,2) +
+                            // std::pow( ( fab(i,j+1,k,n) - fab(i,j-1,k,n))/(dx[1] *2),2) +
+                            // std::pow( ( fab(i,j,k+1,n) - fab(i,j,k-1,n))/(dx[2]*2) ,2) ; 
+                             
+
+                             
+                            //   ( fab(i+1,j,k,n) + fab(i-1,j,k,n) -2* fab(i,j,k,n) )/(dx[0]*dx[0] )+
+                            // ( fab(i,j+1,k,n) + fab(i,j-1,k,n) -2* fab(i,j,k,n) )/(dx[1]*dx[1]) +
+                            // ( fab(i,j,k+1,n) + fab(i,j,k-1,n) -2* fab(i,j,k,n) )/(dx[2]*dx[2]);  
 
                             ( -1./12. * fab(i-2,j,k,n) + 4./3 *fab(i-1,j,k,n) -5./2* fab(i,j,k,n) + 4/3.*fab(i+1,j,k,n)  -1./12*fab(i+2,j,k,n)  )/(dx[0]*dx[0] ) + 
                             ( -1./12. * fab(i,j-2,k,n) + 4./3 *fab(i,j-1,k,n) -5./2* fab(i,j,k,n) + 4/3.*fab(i,j+1,k,n)  -1./12*fab(i,j+2,k,n)  )/(dx[1]*dx[1] ) +
@@ -966,5 +1143,126 @@ AmrCoreDiff::AdvancePhiAtLevel (int lev, Real time, Real dt_lev, int /*iteration
 
                         }
     }
+
+    phi_new[lev].mult(dt_lev,num_grow);
+
+    phi_new[lev].plus(phi_old[lev],0,phi_new[lev].nComp(),num_grow);
+
+}
+
+
+Real normCartesian( const MultiFab & phi_real ,  const Geometry & geom, int component)
+{
+    const Real* dx = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
+
+    Real norm2=0;
+    for ( MFIter mfi( phi_real); mfi.isValid(); ++mfi )
+    {
+        const Box& bx = mfi.validbox();
+        const int* lo = bx.loVect();
+        const int *hi= bx.hiVect();
+        Array4< const Real> const & phi_real_box = phi_real[mfi].const_array();
+        const int j=0;
+        const int k=0;
+
+#if AMREX_SPACEDIM == 1
+            for (int i=lo[0];i<=hi[0];i++)
+            {
+             
+                norm2+=(phi_real_box(i,j,0,component)*phi_real_box(i,j,0,component)
+          ;
+            }
+    
+#endif
+
+
+#if AMREX_SPACEDIM == 2
+        for (int j=lo[1];j<=hi[1];j++)
+            for (int i=lo[0];i<=hi[0];i++)
+            {
+             
+                norm2+=(phi_real_box(i,j,0,component)*phi_real_box(i,j,0,component)
+          ;
+            }
+    
+#endif
+
+
+
+
+#if AMREX_SPACEDIM == 3
+        for (int k=lo[2];k<=hi[2];k++)
+            for (int j=lo[1];j<=hi[1];j++)
+                for (int i=lo[0];i<=hi[0];i++)
+                    {
+
+                        norm2+=(phi_real_box(i,j,k,component)*phi_real_box(i,j,k,component) );
+                    }
+#endif      
+    }
+
+    amrex::ParallelAllReduce::Sum(norm2,MPI_COMM_WORLD);
+
+
+    Real dV=1;
+
+    for (int d=0;d< AMREX_SPACEDIM;d++)
+    {
+        dV*=dx[d];
+    }
+
+    return norm2*dV;
+
+}
+
+
+std::vector<Real> AmrCoreDiff::norm2( ) const
+{
+    auto & mfs = phi_new;
+
+
+    int nComp=mfs[0].nComp();
+    std::vector<Real> norms2(nComp,0);
+    std::vector<Real> dV(max_level+1,1);
+    for(int level=0;level<=max_level;level++)
+    {
+        const auto dx = Geom(level).CellSizeArray();
+        dV[level]=1.;
+        for (int d=0;d<amrex::SpaceDim;d++)
+        {
+            dV[level]*=dx[d];
+        }
+
         
+    }
+
+    for (int level=0;level<=max_level;level++)
+    {       
+        for (int c=0;c<nComp;c++)
+        {
+            
+            norms2[c]+=normCartesian(mfs[level],Geom(level),0) ;
+        }
+    }
+
+
+    for (int level=max_level; level > 0    ;level--)
+    {       
+        BoxArray ba=mfs[level].boxArray();
+        ba.coarsen(ref_ratio[level-1]);
+
+        MultiFab overlappedRegion(ba, dmap[level], phi_new[level].nComp(), 0);
+
+        
+        overlappedRegion.copy(mfs[level-1]); // multifab containing the overlapped region
+        for (int c=0;c<nComp;c++)
+        {
+            norms2[c]-=normCartesian(overlappedRegion,Geom(level-1),0);
+        }
+
+    }
+
+    return norms2;
+
 }

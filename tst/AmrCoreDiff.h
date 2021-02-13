@@ -21,6 +21,9 @@ class AmrCoreDiff
 {
 public:
 
+    enum advanceMethod_t { LinOpAdvance, FillPatchAdvance };
+
+
     ////////////////
     // public member functions
 
@@ -36,7 +39,7 @@ public:
 
     // initializes multilevel data
     void InitData ();
-
+    
     // Make a new level using provided BoxArray and DistributionMapping and 
     // fill with interpolated coarse level data.
     // overrides the pure virtual function in AmrCore
@@ -66,6 +69,10 @@ public:
     // Advance phi at a single level for a single time step, update flux registers
     void AdvancePhiAtLevel (int lev, amrex::Real time, amrex::Real dt_lev, int iteration, int ncycle);
 
+    void AdvancePhiAtLevelMLMG (int lev, amrex::Real time, amrex::Real dt_lev, int iteration, int ncycle);
+
+    void AdvancePhiAtLevelFillPatch(int lev, amrex::Real time, amrex::Real dt_lev, int iteration, int ncycle);
+
     // Advance phi at all levels for a single time step
     void AdvancePhiAllLevels (amrex::Real time, amrex::Real dt_lev, int iteration);
 
@@ -92,7 +99,8 @@ public:
 
     void GetFlux(int lev, Real time, Vector<MultiFab*>& data, Vector<Real>& datatime, int dir);
 
-
+    std::vector<Real> norm2() const;
+    
 
 private:
 
@@ -154,11 +162,9 @@ private:
     amrex::Vector<amrex::MultiFab> phi_new;
     amrex::Vector<amrex::MultiFab> phi_old;
 
-
     amrex::Vector< amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > flux_new; 
     amrex::Vector< amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > flux_old;
-     
-    
+
 
 
 
@@ -213,9 +219,8 @@ private:
     std::string chk_file {"chk"};
     int chk_int = -1;
 
-    amrex::Real timeStep = 1e-2;
-
-    
+    amrex::Real timeStep = 1e-3;
+    advanceMethod_t advanceMethod;
 };
 
 #endif

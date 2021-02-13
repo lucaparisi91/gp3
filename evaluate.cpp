@@ -5,13 +5,13 @@
 
 
 
-
 void evaluate( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
 	Real time, Geometry & geom ,MLPoisson & laplacianOperatorReal ,MLPoisson & laplacianOperatorImag )
 {
 	// laplacian terms
+
 
     MLMG lapReal(laplacianOperatorReal);
     MLMG lapImag(laplacianOperatorImag);

@@ -71,7 +71,6 @@ Real normCartesian( const MultiFab & phi_real , const MultiFab & phi_imag,  cons
 }
 
 
-
 Real normSphericalSymmetry( const MultiFab & phi_real , const MultiFab & phi_imag,  const Geometry & geom, int component)
 {
     const Real* dx = geom.CellSize();
