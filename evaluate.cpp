@@ -4,7 +4,6 @@
 #include <pybind11/pybind11.h>
 
 
-
 void evaluate( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,

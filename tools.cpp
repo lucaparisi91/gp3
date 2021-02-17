@@ -240,7 +240,6 @@ createGeometry( const json_t & settings)
 
     return {ba, geom, dm, low_bc, high_bc} ;
 
-
 }
 
 void fill(MultiFab & realState, MultiFab & imagState, py::array_t<std::complex<Real> > initialCondition , Geometry & geom)
