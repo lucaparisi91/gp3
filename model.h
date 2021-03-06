@@ -3,7 +3,7 @@
 
 #include "geometry.h"
 #include<array>
-#include "traits.h"
+#include "src/traits.h"
 #include <AMReX_PlotFileUtil.H>
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>

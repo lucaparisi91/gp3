@@ -7,10 +7,14 @@
 #include <string>
 #include "gpExceptions.h"
 #include <string>
-#include "traits.h"
+#include "src/traits.h"
+
 using namespace std;
 
 class defaultAction{};
+
+using json_t = gp::json_t;
+
 
 template<class T1,class T2,class creatorType>
 class abstractFactory

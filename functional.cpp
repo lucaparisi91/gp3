@@ -7,7 +7,7 @@ void functional::define( Geometry & geom_ , BoxArray & box_, DistributionMapping
     _geom = geom_;
     _box = box_;
     _dm=dm_;
-
+    
     // creates a new laplacian if one was not previously set
     if (lap == NULL)
     {

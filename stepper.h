@@ -33,21 +33,19 @@ private:
  {
  public:
  	eulerStepper(functional * func_,bool isImaginaryTime_) : isImaginaryTime(isImaginaryTime_) , stepper::stepper(func_){}
-
-
+	
 	virtual void evolve( 
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag,
 	 Real time, Real dt);
+
  private:
  	bool isImaginaryTime;
-
  };
-
 
  class RK4Stepper : public stepper
  {
- 	/* Implements the 4th order Runje-Kutta stepper*/
+ 	/* Implements the 4th order Runge-Kutta stepper*/
  public:
  	RK4Stepper(functional * func_  ,bool isImaginaryTime_,int nComponents_,int ghosts_);
 	 

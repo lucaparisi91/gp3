@@ -1,5 +1,6 @@
 #include "geometry.h"
 
+
 size_t geometry::size() const
 {
     size_t _size=1;

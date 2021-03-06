@@ -5,7 +5,7 @@
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 #include <AMReX_PlotFileUtil.H>
-#include "traits.h"
+#include "src/traits.h"
 #include "tools.h"
 
 using namespace amrex;
@@ -63,6 +63,7 @@ class amrexLaplacianOperator : public laplacianOperator
         virtual void apply(MultiFab & newMultiFab, MultiFab & oldMultiFab) ;
          ~amrexLaplacianOperator();
 
+         
     
 
          static std::string name() {return "amrexLaplacian";}

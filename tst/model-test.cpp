@@ -11,6 +11,7 @@
 #include "initializer.h"
 #include "plotFile.h"
 
+
 TEST(initialization, createGeometry)
 {
     
@@ -24,7 +25,6 @@ TEST(initialization, createGeometry)
     int Nghost = 2;
 
     MultiFab phi_real(box, dm, Ncomp, Nghost);
-
 }
 
 TEST(initialization, harmonic)

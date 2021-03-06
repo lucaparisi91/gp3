@@ -1,6 +1,6 @@
 #include <algorithm>
 #include<array>
-#include "traits.h"
+#include "src/traits.h"
 using Real = double;
 #include <AMReX_PlotFileUtil.H>
 #include "run.h"
@@ -135,7 +135,6 @@ void run(py::array_t<std::complex<Real> > initialCondition , const json_t & sett
 
 
     Real dt=settings["run"]["timeStep"].get<Real>();
-
     
     
     int nBlocks=settings["run"]["nBlocks"].get<int>() ;

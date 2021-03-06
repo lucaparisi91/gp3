@@ -1,7 +1,7 @@
 #ifndef INITIALIZER_H
 #define INITIALIZER_H
 
-#include"traits.h"
+#include"src/traits.h"
 #include "functionalFactory.h"
 #include <AMReX_PlotFileUtil.H>
 #include "operatorsFactory.h"
