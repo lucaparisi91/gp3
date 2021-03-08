@@ -48,7 +48,8 @@ include_directories(${MPI_INCLUDE_PATH} external/json/single_include external/py
 set(GP_FILES run.cpp stepper.cpp geometry.cpp evaluate.cpp model.cpp tools.cpp operators.cpp
 functional.cpp initializer.cpp plotFile.cpp gpDropletFunctional3D.cpp)
 
-set(GP2_FILES src/wavefunction.cpp src/geometry.cpp src/tools.cpp)
+set(GP2_FILES src/wavefunction.cpp src/geometry.cpp src/tools.cpp src/functional.cpp src/stepper.cpp src/normalization.cpp)
+
 
 
 add_library(gp2_lib ${GP2_FILES} )

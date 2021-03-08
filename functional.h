@@ -8,8 +8,6 @@
 #include "operators.h"
 #include "tools.h"
 
-
-
 #if AMREX_SPACEDIM == 3
 
 #define EVALUATION_LOOP( state_new_real, state_new_imag, state_old_real, state_old_imag ,  geom  ) { \
@@ -68,19 +66,17 @@
 
 class functional
 {
-	
+
 public:
 	functional(const json_t & j);
-    functional() : lap(NULL),laplacianOwned(false) {
-	
+    functional() : lap(NULL),laplacianOwned(false) {		
 	}
     virtual void define( Geometry & geom_ , BoxArray & box_, DistributionMapping & dm_ , bc_t & bc_low, bc_t & bc_high);
+	
 
     virtual void evaluate(
 	MultiFab & state_new_real, MultiFab & state_new_imag,
 	MultiFab & state_old_real,  MultiFab & state_old_imag , Real time=0) = 0;
-
-
 
     auto & getGeometry() {return _geom;} 
     auto & getBoxArray() {return _box;}
@@ -103,7 +99,6 @@ public:
 	std::array<BC, AMREX_SPACEDIM> bc_lo;
 	std::array<BC, AMREX_SPACEDIM> bc_hi;
 
-	
 };
 
 class harmonicFunctional : public functional
@@ -123,14 +118,11 @@ class harmonicFunctional : public functional
 	MultiFab & state_old_real,  MultiFab & state_old_imag, Real time =0 ) ;
 
 	static std::string name() {return "harmonic";}
-	
+
     private:
 
     Real prefactor;
-
 };
-
-
 
 
 #endif

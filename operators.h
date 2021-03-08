@@ -1,7 +1,6 @@
 #ifndef OPERATORS_H
 #define OPERATORS_H
 
-
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 #include <AMReX_PlotFileUtil.H>
@@ -106,7 +105,6 @@ class stencilLaplacian : public laplacianOperator
     stencilLaplacian() : laplacianOperator::laplacianOperator() {}
 
     stencilLaplacian(const json_t & j) : stencilLaplacian() {}
-
 
     virtual void define (Geometry & geom_ , BoxArray & ba_ , DistributionMapping & dmInit, bc_t & bc_low, bc_t &  bc_high);
 

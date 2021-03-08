@@ -1,17 +1,19 @@
 
+#ifndef OPERATORS_H
+#define OPERATORS_H
+#include "wavefunction.h"
+
 
 namespace gp
 {
 
 namespace operators
 {
-#include "wavefunction.h"
 
 
 struct operatorBase {};
 
 class reductionOperator : public operatorBase{};
-
 
 
 template<int order,int dim>
@@ -22,12 +24,10 @@ struct laplacian : public operatorBase
         static_assert(dim == 3, "Only 3D laplacians are supported");
 
     }
-    Real operator()(int i,int j, int k,const wavefunctionRegion & wave,int c) const
-    {
-        const auto & phi = wave.getPhiOld<gp::array_t>();
-        const auto & geom = wave.getGeometry();
 
 
+    Real operator()(int i, int j , int k, int c, const gp::const_array_t & phi, const geometry & geom) const
+    {   
         if constexpr (dim == 3 and order==1 )
         {
             return ( phi(i+1,j,k,c) -2*phi(i,j,k,c) + phi(i-1,j,k,c) )/(geom.CellSize()[0]*geom.CellSize()[0]) +
@@ -35,19 +35,42 @@ struct laplacian : public operatorBase
                     ( phi(i,j,k+1,c) -2*phi(i,j,k,c) + phi(i,j,k-1,c) )/(geom.CellSize()[2]*geom.CellSize()[2]) ;
         }
 
+
     }
+
+
+    Real operator()(int i,int j, int k,int c, wavefunctionRegion & wave) const
+    {
+        const auto & phi = wave.getPhi<gp::array_t>();
+        const auto & geom = wave.getGeometry();
+
+        return (*this)(i,j,k,c,phi,geom);
+        
+    }
+
 };
 
-struct setPhiNew : public operatorBase
+struct setPhi : public operatorBase
 {
 
     template<class op_t,class ...Args>
-    void operator()(int i ,int j, int k,wavefunctionRegion &  wave,op_t && currentOp,Args && ... args )
+    void operator()(int i ,int j, int k,int c, wavefunctionRegion &  wave,op_t && currentOp,Args && ... args )
     {
-        const auto & phi = wave.getPhiNew<gp::array_t>();
+        const auto & phi = wave.getPhi<gp::array_t>();
 
-        phi(i,j,k,0)=currentOp(i,j,k,wave,0,std::forward<Args>(args)...); 
 
+        phi(i,j,k,c)=currentOp(i,j,k,c,wave,std::forward<Args>(args)...);
+
+
+    };
+
+
+    template<class op_t,class ...Args>
+    void operator()(int i ,int j, int k,int c,wavefunctionRegion &  waveNew, wavefunctionRegion &  waveOld,op_t && currentOp,Args && ... args )
+    {
+        const auto & phi = waveNew.getPhi<gp::array_t>();
+
+        phi(i,j,k,c)=currentOp(i,j,k,c,waveOld,std::forward<Args>(args)...); 
 
     };
 
@@ -74,7 +97,6 @@ class sumOperators : public operatorBase
     T1 _left;
     T2 _right;
 }; 
-
 
 
 
@@ -136,3 +158,7 @@ auto operator*(T1 left, T2 right)
 
 
 };
+
+#endif
+
+

@@ -1,73 +1,82 @@
+#ifndef WAVEFUNCTION_H
+#define WAVEFUNCTION_H
+
 #include "geometry.h"
 
 namespace gp
 {
-
     using box=amrex::Box;
     using geometry=amrex::Geometry;
-    
     using multiFab = amrex::MultiFab;
     using fab = amrex::FArrayBox;
     using array_t = amrex::Array4<Real> ;
+    using constArray_t = amrex::Array4< const Real> ;
+
     using const_array_t = amrex::Array4<const Real>; 
     using smallVector = std::array<int,DIMENSIONS>;
 
 
-
     struct wavefunctionRegion;
+    struct constWavefunctionRegion;
 
 
     struct wavefunction
     {
         // contains the wavefunction at a single level of refinement
-        wavefunction(multiFab * phiNew_, multiFab * phiOld_, const geometry * geom_) : phiNew(phiNew_),phiOld(phiOld_),geom(geom_)   {
+        wavefunction(multiFab * phi, const geometry * geom_) : _phi(phi),geom(geom_),_isReal(false)   {
+
+            if ( not isReal() )
+            {
+                assert( nComp()%2 == 0 );
+            } 
+
         }
 
         const auto & getGeometry() const {return *geom;};
 
-        const auto & getPhiNew() const {return *phiNew;}
-        auto & getPhiNew() {return *phiNew;}
+        auto & getPhi() {return *_phi;}
+        
+        const auto & getPhi() const {return *_phi;}
 
-        auto & getPhiOld() {return *phiOld;}
-        const auto & getPhiOld() const {return *phiOld;}
 
-        wavefunctionRegion operator[](const amrex::MFIter & it);
+        wavefunctionRegion operator[](const amrex::MFIter & it) ;
 
-        amrex::MFIter beginAmrexIterator() {return amrex::MFIter(getPhiNew() ) ;} 
+
+
+        constWavefunctionRegion operator[](const amrex::MFIter & it) const ;
+
+        
+
+
+        amrex::MFIter beginAmrexIterator() {return amrex::MFIter(getPhi() ) ;}
 
         void fillBoundaries() // fills all boundary. Only pbc supported at the moment
         {
-            phiNew->FillBoundary(geom->periodicity());
+            _phi->FillBoundary(geom->periodicity());
         }
 
+        int nComp() const {return _phi->nComp();}
 
-        void swapOldAndNew(){
-            std::swap(phiNew,phiOld);
-        }
-
+        bool isReal() const {return _isReal;}
+        
 
         private:
-
-        multiFab * phiNew;
-        multiFab * phiOld;
+        
+        multiFab * _phi;
         const geometry * geom;
-
+        bool _isReal;
     };
+
+
 
     struct  wavefunctionRegion
     {
-        wavefunctionRegion( box boxRegion_,fab * phiNew_, fab* phiOld_,const geometry* geom_ ) :
+        wavefunctionRegion( box boxRegion_,fab * phi ,const geometry* geom_ ) :
         boxRegion(boxRegion_),
-
-        phiNew(phiNew_),
-        phiOld(phiOld_),
+        _phi( phi),
         geom(geom_)
-        
          {
-             phiNewArr=phiNew->array();
-             phiOldArr=phiOld->array();
-             
-             
+             _phiArr=_phi->array();
          }
 
         int minIndex(int d) {return boxRegion.loVect()[d]; }
@@ -76,38 +85,72 @@ namespace gp
         smallVector minIndex();
         smallVector maxIndex();
 
-
         const auto & getBox(){return boxRegion;}
         
-        auto & getPhiNewAsFab(){return *phiNew;}
-        const auto & getPhiNewAsFab() const {return *phiNew;}
-        auto & getPhiOldAsFab(){return *phiOld;}
-        const auto & getPhiOldAsFab() const {return *phiOld;}
-
+        auto & getPhiAsFab(){return *_phi;}
+        
+        int  nComp() const  {return _phi->nComp(); }
 
         // enable get access to wavefunction data
         template<class T, std::enable_if_t<std::is_same<T,fab>::value > * = nullptr   >
-        auto & getPhiNew() { return getPhiNewAsFab();}
+        auto & getPhi() { return getPhiAsFab();}
 
         template<class T, std::enable_if_t<std::is_same<T,array_t>::value > * = nullptr  >
-        const auto & getPhiNew() { return phiNewArr;}
+        const auto & getPhi() { return _phiArr;}
 
-
-        template<class T, std::enable_if_t<std::is_same<T,array_t>::value > * = nullptr  >
-        const auto & getPhiOld() const { return phiOldArr;}
 
         const auto & getGeometry() const {return *geom;};
-
+        
     private:
         box boxRegion;
-        fab * phiNew;
-        fab * phiOld;
+        fab * _phi;
         const geometry * geom;
+        gp::array_t _phiArr;
+    };
 
-        gp::array_t phiNewArr;
-        gp::array_t phiOldArr;        
+
+struct  constWavefunctionRegion
+    {
+        constWavefunctionRegion( box boxRegion_,const fab * phi ,const geometry* geom_ ) :
+        boxRegion(boxRegion_),
+        _phi( phi),
+        geom(geom_)
+         {
+             _phiArr=_phi->const_array();
+         }
+
+        int minIndex(int d) {return boxRegion.loVect()[d]; }
+        int maxIndex(int d){return boxRegion.hiVect()[d];}
+
+        int  nComp() const  {return _phi->nComp(); }
+
+
+        smallVector minIndex() const ;
+        smallVector maxIndex() const ;
+
+        const auto & getBox(){return boxRegion;}
+        
+        const auto & getPhiAsFab() const {return *_phi;}
+
+
+        template<class T, std::enable_if_t<std::is_same<T,fab>::value > * = nullptr   >
+        const auto & getPhi() const { return getPhiAsFab();}
+
+        template<class T, std::enable_if_t<std::is_same<T,array_t>::value > * = nullptr  >
+        const auto & getPhi() const { return _phiArr;}
+
+
+        const auto & getGeometry() const {return *geom;};
+        
+    private:
+        box boxRegion;
+        const fab * _phi;
+        const geometry * geom;
+        gp::constArray_t _phiArr;
+
 
     };
 
 };
 
+#endif
