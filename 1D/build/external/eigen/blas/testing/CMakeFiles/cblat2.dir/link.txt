@@ -1,1 +1,0 @@
-/usr/bin/gfortran   -g CMakeFiles/cblat2.dir/cblat2.f.o  -o cblat2  -Wl,-rpath,/home/luca/source/GP3/1D/build/external/eigen/blas ../libeigen_blas.so 

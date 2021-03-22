@@ -1,9 +1,0 @@
-#include "gtest/gtest.h"
-
-TEST(geometry,base)
-{
-  geometrySpherical3D geo(1,100);
-  
-  ASSERT_EQ(geo.radiusSphere,1/100.);
-  
-}
