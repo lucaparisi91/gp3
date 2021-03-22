@@ -33,7 +33,7 @@ std::tuple<std::array<BC,AMREX_SPACEDIM>, std::array<BC,AMREX_SPACEDIM> > readBC
         high_bc[d] = bc;
     }
 
-    return std::tuple(low_bc,high_bc);
+    return std::make_tuple(low_bc,high_bc);
 }
 
 auto toMultiFabBC(const BC & bc)

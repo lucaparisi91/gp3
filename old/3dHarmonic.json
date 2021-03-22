@@ -1,0 +1,38 @@
+{
+    "dimensions" : 3,
+    "components" : 1,
+    "type" : "real",
+    "bc" : ["pbc","pbc","pbc"],
+    "nCells" : [100,100,100],
+    "box" : [ 
+        [-10,10],
+        [-10,10],
+        [-10,10]
+    ] ,
+    "stepper" : "rk4",
+    "laplacian" :
+    {
+        "stencil" : {
+            "order" : 2
+        }
+    }
+    ,
+    "renormalization" : true,
+    "imaginaryTime" : true,
+    "model" :
+    {
+        "kind" : "gp",
+        "oneBodyPotential" : "harmonic",
+        "components" : 2,
+        "type" : "real",
+        "couplings" : [ [0.0, 0.0] , [0.0,0.0] ],
+        "masses" : [1.0,1.0]
+    },
+    "initialCondition" :
+        [
+            {
+                "kind" : "gaussian",
+                "sigma" : 1        
+            }
+        ]
+}

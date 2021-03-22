@@ -28,7 +28,6 @@ namespace gp
                 dV*=geom.CellSize()[d];
             }
 
-
             for (int c=0;c<wave.nComp()/2;c+=1)
             {
                 Real tmp,tmp2;

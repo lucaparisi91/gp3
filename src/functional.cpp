@@ -29,11 +29,11 @@ void trappedGPFunctional<laplacianOperator_t>::evaluate(
                     gp::Real z = geom.ProbLo()[2] + geom.CellSize()[2]*k  ;
 
 
-                    for(int c=0;c<2*nComp;c++)
+                    for(int c=0;c<waveNew.nComp();c++)
                     {
-                        auto tmp = -0.5*_lap(i,j,k,c,phiOld,geom) + prefactor*(x*x + y*y + z*z)
-                        ;
+                        auto tmp = -0.5*_lap(i,j,k,c,phiOld,geom) + prefactor*(x*x + y*y + z*z)*phiOld(i,j,k,c);
 
+                        
                         phiNew(i,j,k,c)=tmp;
                     }
 

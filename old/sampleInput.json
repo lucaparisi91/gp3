@@ -1,0 +1,40 @@
+{
+    "geometry" : 
+    {
+        "shape" : [128,128, 128] ,
+        "domain" : [ [-5,5] , [-5,5] , [-5,5] ] ,
+        "coordinates" : "cartesian",
+        "blockingFactor" : 1
+    },
+    "stepping" :
+    {
+        "name" : "eulero",
+        "timeStep" : 1e-1,
+        "imaginaryTime" : true,
+        "maxTime" : 1,
+        "maxTimeBlock" : 0.1,
+        "initialTime" : 0
+    },
+    "laplacianScheme" :
+    {
+        "type" : "finiteDifference",
+        "order" : 2
+    },
+    "wavefunction" :
+    {
+        "normalization" : [1.0]
+    },
+    "model" : 
+    {
+        "name" : "trappedGP",
+        "g" : 0.0,
+        "omega" : 1.0
+    },
+    "io" :
+    {
+        "outputDir" : "out",
+        "initialCondition" : "phi.hf5"
+    }
+    
+
+}

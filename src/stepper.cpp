@@ -14,6 +14,7 @@ void eulerStepper::evolve(
 
 
 	auto & phi = waveNew.getPhi();
+	const auto & phiOld = waveOld.getPhi();
 
 
 	getFunctional().evaluate(
@@ -33,7 +34,9 @@ void eulerStepper::evolve(
 	{
 		phi.mult(-dt);
 	}
-	phi.plus(phi,0,phi.nComp(),0);
+
+
+	phi.plus(phiOld,0,phi.nComp(),0);
 	waveNew.fillBoundaries();
 
 }
@@ -56,7 +59,7 @@ void RK4Stepper::evolve(
 		time);
 
 	phiTmp.mult(-dt);
-	
+
 	
 	amrex::MultiFab::Copy(phiNew, phiOld, 0, 0, nComponents,ghosts);
 	amrex::MultiFab::Saxpy(phiNew,1./6.,phiTmp,0,0,nComponents,ghosts);

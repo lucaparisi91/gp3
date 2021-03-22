@@ -3,7 +3,6 @@
 #define OPERATORS_H
 #include "wavefunction.h"
 
-
 namespace gp
 {
 

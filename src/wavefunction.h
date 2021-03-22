@@ -59,6 +59,9 @@ namespace gp
 
         bool isReal() const {return _isReal;}
         
+        void save(const std::string & format);
+
+        
 
         private:
         
