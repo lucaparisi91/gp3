@@ -12,4 +12,4 @@ add_subdirectory(external/googletest)
 
 add_subdirectory(src)
 add_subdirectory(tst)
-
+add_subdirectory(pythonBindings)
