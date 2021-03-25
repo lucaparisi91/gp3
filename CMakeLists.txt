@@ -4,11 +4,11 @@ project(gp)
 
 include(cmake/init.cmake)
 
-add_subdirectory(external/pybind11)
-add_subdirectory(external/amrex)
-add_subdirectory(external/json)
-add_subdirectory(external/pybind11_json)
-add_subdirectory(external/googletest)
+add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
+add_subdirectory(external/amrex EXCLUDE_FROM_ALL)
+add_subdirectory(external/json EXCLUDE_FROM_ALL)
+add_subdirectory(external/pybind11_json EXCLUDE_FROM_ALL)
+add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 
 add_subdirectory(src)
 add_subdirectory(tst)

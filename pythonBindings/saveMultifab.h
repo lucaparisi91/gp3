@@ -3,10 +3,15 @@
 #include <pybind11/numpy.h>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <pybind11/stl.h>
+#include <pybind11/complex.h>
+
 
 namespace py = pybind11;
 using json_t = nlohmann::json ;
 using Real = double;
 
+void saveMultifab( py::list initialConditions   , const json_t & settings   );
 
-void saveMultifab(std::vector< py::array_t<std::complex<Real> > > initialConditions  , const json_t & settings   );
+std::vector< std::vector<std::complex<double> > > readMultifab( const json_t & settings   );
+

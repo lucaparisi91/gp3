@@ -82,8 +82,8 @@ namespace gp
              _phiArr=_phi->array();
          }
 
-        int minIndex(int d) {return boxRegion.loVect()[d]; }
-        int maxIndex(int d){return boxRegion.hiVect()[d];}
+        int minIndex(int d) const {return boxRegion.loVect()[d]; }
+        int maxIndex(int d) const {return boxRegion.hiVect()[d];}
 
         smallVector minIndex();
         smallVector maxIndex();
@@ -104,6 +104,23 @@ namespace gp
 
         const auto & getGeometry() const {return *geom;};
         
+        auto size( int d) const
+        {
+            return maxIndex(d) - minIndex(d) + 1;
+        }
+
+        const auto size() const
+        {
+            auto tmpSize = size(0);
+
+            for(int d=1;d<DIMENSIONS;d++)
+            {
+                tmpSize*=size(d);
+            }
+
+            return tmpSize*nComp();
+        }
+
     private:
         box boxRegion;
         fab * _phi;
@@ -122,8 +139,29 @@ struct  constWavefunctionRegion
              _phiArr=_phi->const_array();
          }
 
-        int minIndex(int d) {return boxRegion.loVect()[d]; }
-        int maxIndex(int d){return boxRegion.hiVect()[d];}
+        int minIndex(int d) const {return boxRegion.loVect()[d]; }
+        int maxIndex(int d) const {return boxRegion.hiVect()[d];}
+
+
+        auto size( int d) const
+        {
+            return minIndex(d) - maxIndex(d) + 1;
+        }
+
+        const auto size() const
+        {
+            auto tmpSize = size(0);
+
+            for(int d=1;d<DIMENSIONS;d++)
+            {
+                tmpSize*=size(d);
+            }
+
+            return tmpSize*nComp();
+        }
+
+
+
 
         int  nComp() const  {return _phi->nComp(); }
 
