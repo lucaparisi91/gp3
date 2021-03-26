@@ -19,7 +19,9 @@ namespace gp
     struct wavefunctionRegion;
     struct constWavefunctionRegion;
 
+    amrex::MultiFab  createMultiFab(const json_t & settings);
     
+
     struct wavefunction
     {
         // contains the wavefunction at a single level of refinement

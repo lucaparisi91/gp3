@@ -3,15 +3,11 @@
 #include "gpExceptions.h"
 #include "geometry.h"
 #include "tools.h"
+#include <AMReX_VisMF.H>
 
 
 namespace gp
 {
-
-
-
-
-
 
 
 amrex::BoxArray createBoxes(const json_t & j)
@@ -77,7 +73,7 @@ amrex::BoxArray createGrids(const json_t & j)
     else
     {
         amrex::BoxArray ba;
-        auto domain=createDomainBox(j);
+        auto domain=createDomainBox(j["geometry"]);
         ba.define(domain);
         if (j.contains("maxGridSize") )
         {
@@ -91,7 +87,9 @@ amrex::BoxArray createGrids(const json_t & j)
 
 
 
-std::tuple< amrex::BoxArray , amrex::Geometry , amrex::DistributionMapping  , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
+
+
+std::tuple< amrex::Geometry   , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
 createGeometry( const json_t & settings)
 {
     amrex::BoxArray ba;
@@ -113,16 +111,8 @@ createGeometry( const json_t & settings)
     
     auto domain=createDomainBox(settings);
 
-    ba.define(domain);
 
-    if (settings.contains("maxGridSize") )
-    {
-        int max_grid_size = settings["maxGridSize"].get<int>();
 
-        ba.maxSize(max_grid_size);
-
-    }
-   
     amrex::RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
                          {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});
                         
@@ -176,9 +166,8 @@ createGeometry( const json_t & settings)
 
     geom.define(domain,&real_box,coord,is_periodic.data());
 
-    amrex::DistributionMapping dm(ba);
-
-    return {ba, geom, dm, low_bc, high_bc} ;
+    
+    return { geom, low_bc, high_bc} ;
 
 }
 

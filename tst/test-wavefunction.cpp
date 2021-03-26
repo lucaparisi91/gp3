@@ -117,20 +117,16 @@ TEST(wavefunction, evaluateFunctional)
 
      auto settings = R"( 
         { 
-        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"} } )"_json;
+        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-5,5] , [-5,5] , [-5,5] ] , "coordinates" : "cartesian"},
+        "nGhosts" : [2,2,2],
+        "components" : 1
+        } )"_json;
 
         
-    auto [ba , geom , dm, low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
+    auto [ geom , low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
 
-    amrex::MultiFab phi_new;
-    amrex::MultiFab phi_old;
-
-    int nComp=2;
-    int nGhosts=2;
-
-
-    phi_new.define(ba, dm, nComp, nGhosts);
-    phi_old.define(ba, dm, nComp, nGhosts);
+    auto  phi_new = gp::createMultiFab(settings);
+    auto phi_old = gp::createMultiFab(settings);
 
 
 
@@ -184,19 +180,16 @@ TEST(wavefunction, harmonicPotential)
 
      auto settings = R"( 
         { 
-        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-10,10] , [-10,10] , [-10,10] ] , "coordinates" : "cartesian"} } )"_json;
-
+        "geometry" : {"shape" : [128,128, 128] , "domain" : [ [-10,10] , [-10,10] , [-10,10] ] , "coordinates" : "cartesian"} ,
+        "nGhosts" : [2,2,2],
+        "components" : 1
+        } )"_json;
         
-    auto [ba , geom , dm, low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
+        
+    auto [ geom , low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
 
-    amrex::MultiFab phi_new;
-    amrex::MultiFab phi_old;
-
-    int nComp=2;
-    int nGhosts=2;
-
-    phi_new.define(ba, dm, nComp, nGhosts);
-    phi_old.define(ba, dm, nComp, nGhosts);
+    auto  phi_new = gp::createMultiFab(settings);
+    auto phi_old = gp::createMultiFab(settings);
 
     gp::wavefunction waveNew(&phi_new,&geom);
     gp::wavefunction waveOld(&phi_old,&geom);

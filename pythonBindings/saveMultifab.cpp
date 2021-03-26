@@ -14,40 +14,19 @@ auto  get(py::list list, int i)
 }
 
 
-auto createMultifab(const json_t & settings)
-{
-    auto ba = gp::createBoxes(settings["boxes"]);
-
-    // create geometry from json file
-
-     auto [baDomain , geom , dm, low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
-
-
-     // create multifab
-     amrex::MultiFab phi;
-
-
-    auto nGhosts= settings["nGhosts"].get<std::vector<int> >();
-
-    amrex::IntVect nGhostsAmrex(AMREX_D_DECL(nGhosts[0],nGhosts[1],nGhosts[2]));
-
-
-    int nComp=settings["components"].get<int>()*2;
-
-    phi.define(ba, dm, nComp, nGhostsAmrex); 
-    return phi;
-}
 
 
 void saveMultifab( py::list initialConditions , const json_t & settings   )
 {
     initializer::getInstance().init();
 
-    auto [baDomain , geom , dm, low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
+    auto [ geom , low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
 
-    auto phi = createMultifab(settings);
+    auto phi = gp::createMultiFab(settings);
 
+    
     gp::wavefunction wave(&phi,&geom);
+
 
     int i=0;
     for ( auto mfi = wave.beginAmrexIterator() ; mfi.isValid(); ++mfi )
@@ -129,16 +108,15 @@ std::vector<std::vector<std::complex<double> > > readMultifab( const json_t & se
     initializer::getInstance().init();
 
 
-    auto [baDomain , geom , dm, low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
+    auto [ geom , low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
 
-    auto phi = createMultifab(settings);
+
+    auto phi = gp::createMultiFab(settings);
 
     gp::wavefunction wave(&phi,&geom);
 
-    auto filename = settings["folder"].get<std::string>() + std::string("/") + settings["name"].get<std::string>() ;
 
-
-    amrex::VisMF::Read(phi, filename);
+    
 
     std::vector< std::vector<std::complex<double> > >data;
     
