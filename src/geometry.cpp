@@ -7,15 +7,97 @@
 
 namespace gp
 {
-std::tuple< amrex::BoxArray , amrex::Geometry , amrex::DistributionMapping  , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
 
+
+
+
+
+
+
+amrex::BoxArray createBoxes(const json_t & j)
+{
+    // load boxes from json file
+    amrex::Vector<amrex::Box> boxes;
+
+    for (auto currentBox : j )
+    {
+
+        amrex::IntVect lowerEdge;
+        amrex::IntVect upperEdge;
+
+        for (int d=0;d<gp::DIMENSIONS;d++)
+        {
+            auto limitsDimension=currentBox["range"][d].get<std::pair<int,int> >();
+            lowerEdge[d]=limitsDimension.first;
+            upperEdge[d]=limitsDimension.second;
+
+        }
+
+        boxes.push_back(amrex::Box(lowerEdge,upperEdge));
+
+
+    }
+
+
+    amrex::BoxList bl(std::move(boxes) );
+    amrex::BoxArray ba(bl);
+
+    return ba;
+};
+
+
+amrex::Box createDomainBox(const json_t & settings)
+{
+    std::array<size_t,AMREX_SPACEDIM> shape;
+
+    for (int i=0;i<AMREX_SPACEDIM;i++)
+    {
+        shape[i] = settings["shape"][i].get<int>();
+
+    }
+
+    amrex::IntVect dom_lo(AMREX_D_DECL(       0,        0,        0));
+    amrex::IntVect dom_hi(AMREX_D_DECL( shape[0]-1, shape[1]-1, shape[2]-1));
+
+
+    amrex::Box domain(dom_lo, dom_hi);
+
+    return domain;
+
+
+}
+
+
+amrex::BoxArray createGrids(const json_t & j)
+{
+    if (j.find("boxes") != j.end() )
+    {
+        return createBoxes(j["boxes"]);
+    }
+    else
+    {
+        amrex::BoxArray ba;
+        auto domain=createDomainBox(j);
+        ba.define(domain);
+        if (j.contains("maxGridSize") )
+        {
+            int max_grid_size = j["maxGridSize"].get<int>();
+            ba.maxSize(max_grid_size);
+        }
+        return ba;
+    }
+
+};
+
+
+
+std::tuple< amrex::BoxArray , amrex::Geometry , amrex::DistributionMapping  , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
 createGeometry( const json_t & settings)
 {
     amrex::BoxArray ba;
     amrex::Geometry geom;
     amrex::Vector<int> is_periodic(AMREX_SPACEDIM,1);
 
-    std::array<size_t,AMREX_SPACEDIM> shape;
     std::array<Real,AMREX_SPACEDIM> lower_edges;
     std::array<Real,AMREX_SPACEDIM> higher_edges;
     
@@ -26,13 +108,11 @@ createGeometry( const json_t & settings)
     {
         lower_edges[i]=settings["domain"][i][0].get<Real>();
         higher_edges[i]=settings["domain"][i][1].get<Real>();
-        shape[i] = settings["shape"][i].get<int>();
 
     }
+    
+    auto domain=createDomainBox(settings);
 
-    amrex::IntVect dom_lo(AMREX_D_DECL(       0,        0,        0));
-    amrex::IntVect dom_hi(AMREX_D_DECL( shape[0]-1, shape[1]-1, shape[2]-1));
-    amrex::Box domain(dom_lo, dom_hi);
     ba.define(domain);
 
     if (settings.contains("maxGridSize") )

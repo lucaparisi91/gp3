@@ -6,8 +6,6 @@ import os
 import json
 import gpIO_c
 
-
-
 class box:
     def __init__(self,limits):
         '''
@@ -42,6 +40,7 @@ class geometry:
         if grown_shape is None:
             grown_shape=shape
         self.grown_shape=grown_shape
+    
     def domainBox(self):
         limits=[(0,self.shape[d] - 1 ) for d in range(self.dimensions)]
         selectionBox=box(limits)

@@ -13,39 +13,10 @@ auto  get(py::list list, int i)
     return *(list.begin() + i); 
 }
 
-auto createBoxes(const json_t & j)
-{
-    // load boxes from json file
-    amrex::Vector<amrex::Box> boxes;
-
-    for (auto currentBox : j )
-    {
-
-        amrex::IntVect lowerEdge;
-        amrex::IntVect upperEdge;
-
-        for (int d=0;d<gp::DIMENSIONS;d++)
-        {
-            auto limitsDimension=currentBox["range"][d].get<std::pair<int,int> >();
-            lowerEdge[d]=limitsDimension.first;
-            upperEdge[d]=limitsDimension.second;
-
-        }
-
-        boxes.push_back(amrex::Box(lowerEdge,upperEdge));
-
-
-    }
-
-    amrex::BoxList bl(std::move(boxes) );
-    amrex::BoxArray ba(bl);
-
-    return ba;
-}
 
 auto createMultifab(const json_t & settings)
 {
-    auto ba = createBoxes(settings["boxes"]);
+    auto ba = gp::createBoxes(settings["boxes"]);
 
     // create geometry from json file
 

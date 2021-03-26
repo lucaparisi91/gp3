@@ -9,12 +9,10 @@ wavefunctionRegion wavefunction::operator[](const amrex::MFIter & mfi)
 }
 
 
+
 constWavefunctionRegion wavefunction::operator[](const amrex::MFIter & mfi)  const
 {
     return gp::constWavefunctionRegion(  mfi.validbox() ,    getPhi().fabPtr(mfi)  , & getGeometry() );
 }
-
-
-
 
 }

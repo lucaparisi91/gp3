@@ -19,7 +19,7 @@ namespace gp
     struct wavefunctionRegion;
     struct constWavefunctionRegion;
 
-
+    
     struct wavefunction
     {
         // contains the wavefunction at a single level of refinement
