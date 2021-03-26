@@ -20,12 +20,12 @@ namespace gp
     struct constWavefunctionRegion;
 
     amrex::MultiFab  createMultiFab(const json_t & settings);
-    
+
 
     struct wavefunction
     {
         // contains the wavefunction at a single level of refinement
-        wavefunction(multiFab * phi, const geometry * geom_) : _phi(phi),geom(geom_),_isReal(false)   {
+        wavefunction(multiFab * phi, const geometry * geom_, std::string name="phi") : _phi(phi),geom(geom_),_isReal(false),_name(name)   {
 
             if ( not isReal() )
             {
@@ -47,9 +47,6 @@ namespace gp
 
         constWavefunctionRegion operator[](const amrex::MFIter & it) const ;
 
-        
-
-
         amrex::MFIter beginAmrexIterator() {return amrex::MFIter(getPhi() ) ;}
 
         void fillBoundaries() // fills all boundary. Only pbc supported at the moment
@@ -61,15 +58,16 @@ namespace gp
 
         bool isReal() const {return _isReal;}
         
-        void save(const std::string & format);
 
-        
+        void save(const std::string & folder);
+
 
         private:
-        
+
         multiFab * _phi;
         const geometry * geom;
         bool _isReal;
+        std::string _name;
     };
 
 

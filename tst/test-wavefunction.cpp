@@ -184,7 +184,7 @@ TEST(wavefunction, harmonicPotential)
         "nGhosts" : [2,2,2],
         "components" : 1
         } )"_json;
-        
+
         
     auto [ geom , low_bc, high_bc] = gp::createGeometry(settings["geometry"]);
 
@@ -198,7 +198,7 @@ TEST(wavefunction, harmonicPotential)
     gaussian fillInitial(1.);
     gp::operators::setPhi setPhi;
     gp::cpuKernelLaunch testKernelLauncher;
-
+    
 
     testKernelLauncher.apply(waveNew, setPhi,fillInitial);
     testKernelLauncher.apply(waveNew,fillInitial,check_t{1e-6});
@@ -217,6 +217,9 @@ TEST(wavefunction, harmonicPotential)
     gp::Real maxTime=1000*timeStep;
     std::cout << timeStep << std::endl;
 
+    size_t iteration=0;
+    size_t stepsPerBlock=10;
+
 
     while(time<maxTime)
     {
@@ -230,7 +233,13 @@ TEST(wavefunction, harmonicPotential)
         time+=timeStep;
         gp::normalization::normalize(waveNew,{1.});
 
+        if ( iteration % stepsPerBlock == 0)
+        {
+            waveNew.save("phi" + std::to_string(iteration));
+        }    
         
+
+        iteration+=1;
     }
 
 }

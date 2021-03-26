@@ -17,7 +17,7 @@ class testMultifab(unittest.TestCase):
         wave2=gp.loadWavefunction("phiTest")
         y2=wave2.phis[0]
         
-        assert(np.max(y2 - y)==0)
+        assert(np.max(y2 - y)==0 )
 
 
         

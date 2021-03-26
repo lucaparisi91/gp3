@@ -24,8 +24,9 @@ void saveMultifab( py::list initialConditions , const json_t & settings   )
 
     auto phi = gp::createMultiFab(settings);
 
-    
-    gp::wavefunction wave(&phi,&geom);
+    std::string name=settings["name"].get<std::string>();
+
+    gp::wavefunction wave(&phi,&geom,name);
 
 
     int i=0;
@@ -94,10 +95,11 @@ void saveMultifab( py::list initialConditions , const json_t & settings   )
 
     } 
 
-    auto filename = settings["folder"].get<std::string>() + std::string("/") + settings["name"].get<std::string>() ;
+    //auto filename = settings["folder"].get<std::string>() + std::string("/") + settings["name"].get<std::string>() ;
 
-   amrex::VisMF::Write(phi, filename);
-
+    // amrex::VisMF::Write(phi, filename);
+    std::string folder = settings["folder"].get<std::string>();
+    wave.save(folder);
     //amrex::Finalize();
    }
 
@@ -143,7 +145,10 @@ std::vector<std::vector<std::complex<double> > > readMultifab( const json_t & se
                         {
                             int index = i + j*shape[0] + k *shape[0] * shape[1] + c * shape[0] * shape[1] * shape[2];
 
+                            //std::cout << phi_arr(i,j,k,2*c) << std::endl; 
                             regionData[index]=std::complex<double>(phi_arr(i,j,k,2*c) ,phi_arr(i,j,k,2*c + 1) );
+
+
                         }            
 #endif
         data.push_back(regionData);
@@ -152,7 +157,7 @@ std::vector<std::vector<std::complex<double> > > readMultifab( const json_t & se
     
 
     
-
+    
     
     return data;
     

@@ -1,6 +1,8 @@
 #include "wavefunction.h"
 #include <AMReX_VisMF.H>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 
 
 
@@ -20,7 +22,61 @@ constWavefunctionRegion wavefunction::operator[](const amrex::MFIter & mfi)  con
 }
 
 
+void wavefunction::save(const std::string & folder)
+{
+     auto amrexFileName = folder + std::string("/") + _name ;
 
+
+
+    // save multifab
+    
+    if (!fs::exists(folder)) 
+        {
+            fs::create_directory(folder);
+        } 
+
+    amrex::VisMF::Write(*_phi, amrexFileName);
+
+    auto jGeo= toJson( getGeometry());
+
+
+    const auto & dm = (*_phi).DistributionMap();
+    const auto & ba = (*_phi).boxArray();
+    
+    auto jBoxes= toJson( ba,dm);
+
+
+    json_t j;
+
+    auto jsonFilename = folder + std::string("/") + std::string("wave.json") ;
+
+
+
+    j["geometry"]=jGeo;
+    j["boxes"]=jBoxes;
+    j["components"]=_phi->nComp()/2;
+
+    std::vector<int> nGhosts;
+
+    for(int d=0;d<DIMENSIONS;d++)
+    {
+        nGhosts.push_back(_phi->nGrow(d) );
+    }
+    
+    j["nGhosts"]=nGhosts;
+    j["name"]=_name;
+    j["folder"]=folder;
+
+
+    std::ofstream f;
+    f.open(jsonFilename);
+
+    f << j ;
+
+    f.close();
+
+
+}
 
 amrex::MultiFab  createMultiFab(const json_t & settings)
 {
@@ -49,20 +105,19 @@ amrex::MultiFab  createMultiFab(const json_t & settings)
 
     phi.define(ba, dm, nComp, nGhostsAmrex); 
 
-
     if ( 
         (settings.find("folder") !=settings.end() ) and 
         (settings.find("name") != settings.end() )
         )
         {
             auto filename = settings["folder"].get<std::string>() + std::string("/") + settings["name"].get<std::string>() ;
-
-
+            std::cout << "filename: " << filename << std::endl;
+            if (fs::exists(filename + "_H")) {
             amrex::VisMF::Read(phi, filename);
+            }
         }
-    {
+    
 
-    }
 
 
     return phi;

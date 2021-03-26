@@ -3,11 +3,71 @@
 #include "gpExceptions.h"
 #include "geometry.h"
 #include "tools.h"
-#include <AMReX_VisMF.H>
 
 
 namespace gp
 {
+
+
+json_t toJson(const amrex::Geometry & geo)
+{
+    std::vector<std::vector<int> > domain(DIMENSIONS);
+    std::vector<size_t> shape(DIMENSIONS);
+
+    for (int d=0;d<DIMENSIONS;d++)
+    {
+        shape[d]=geo.Domain().bigEnd(d) - geo.Domain().smallEnd(d) + 1 ;
+        
+        domain[d].resize(2);
+        domain[d][0]=geo.ProbLo(d);
+        domain[d][1]=geo.ProbHi(d);
+        
+        
+    }
+
+
+    json_t j;
+
+
+    j["domain"]=domain;
+    j["shape"]=shape;
+    j["coordinates"]="cartesian";
+    return j;
+
+}
+
+json_t toJson(const amrex::BoxArray & ba, const amrex::DistributionMapping & dm)
+{
+
+    json_t j;
+
+    j["boxes"]=std::vector<int>();
+
+
+
+    for (amrex::MFIter it(ba,dm); it.isValid() ;++it )
+    {
+        auto currentBox = ba[it];
+        std::vector<std::vector<int> > range;
+        for(int d=0;d<DIMENSIONS;d++)
+        {
+            range.push_back({currentBox.smallEnd()[d],currentBox.bigEnd()[d]});
+        }
+
+        json_t jBox;
+        jBox["range"]=range;
+
+        j["boxes"].push_back(jBox);
+        
+    }
+
+    return j["boxes"];
+}
+
+
+
+
+
 
 
 amrex::BoxArray createBoxes(const json_t & j)
