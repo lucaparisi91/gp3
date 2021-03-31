@@ -24,9 +24,9 @@ void trappedGPFunctional<laplacianOperator_t>::evaluate(
                     for (int i=waveNewRegion.minIndex(0);i<=waveNewRegion.maxIndex(0);i++)
                     {
                         
-                    gp::Real x = geom.ProbLo()[0] + geom.CellSize()[0]*i  ;
-                    gp::Real y = geom.ProbLo()[1] + geom.CellSize()[1]*j  ;
-                    gp::Real z = geom.ProbLo()[2] + geom.CellSize()[2]*k  ;
+                    gp::Real x = geom.ProbLo()[0] + geom.CellSize()[0]*(i+0.5)  ;
+                    gp::Real y = geom.ProbLo()[1] + geom.CellSize()[1]*(j+0.5)  ;
+                    gp::Real z = geom.ProbLo()[2] + geom.CellSize()[2]*(k + 0.5)  ;
 
 
                     for(int c=0;c<waveNew.nComp();c++)
@@ -45,6 +45,36 @@ void trappedGPFunctional<laplacianOperator_t>::evaluate(
 
 
 
+void setGaussian(
+	wavefunction & waveNew, Real alpha, int c)
+{
+
+    const auto & geom = waveNew.getGeometry();
+
+    for ( auto mfi = waveNew.beginAmrexIterator() ; mfi.isValid(); ++mfi ) 
+        { 
+            auto  waveNewRegion = waveNew[mfi];
+           
+            const auto & phiNew = waveNewRegion.getPhi<gp::array_t>();
+           
+        if constexpr ( DIMENSIONS == 3)
+            for (int k=waveNewRegion.minIndex(2);k<=waveNewRegion.maxIndex(2);k++)
+                for (int j=waveNewRegion.minIndex(1);j<=waveNewRegion.maxIndex(1);j++) 
+                    for (int i=waveNewRegion.minIndex(0);i<=waveNewRegion.maxIndex(0);i++)
+                    {
+                        
+                    gp::Real x = geom.ProbLo()[0] + geom.CellSize()[0]*(i+0.5)  ;
+                    gp::Real y = geom.ProbLo()[1] + geom.CellSize()[1]*(j+0.5)  ;
+                    gp::Real z = geom.ProbLo()[2] + geom.CellSize()[2]*(k+0.5)  ;
+
+
+                    phiNew(i,j,k,c)=std::exp(-alpha*(x*x + y*y + z*z));
+                    }
+
+
+        }
+
+}
 
 
 template class trappedGPFunctional<operators::laplacian<1,DIMENSIONS> >;

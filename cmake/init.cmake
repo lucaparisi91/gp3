@@ -20,5 +20,6 @@ if ( ${CMAKE_BUILD_TYPE} MATCHES Debug)
 endif()
 
 find_package(MPI REQUIRED)
+find_package(OpenMP)
 
 

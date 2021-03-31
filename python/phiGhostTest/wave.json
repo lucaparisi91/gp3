@@ -1,0 +1,1 @@
+{"boxes":[{"range":[[0,39],[0,39],[0,39]]}],"components":1,"folder":"phiGhostTest","geometry":{"coordinates":"cartesian","domain":[[-2,2],[-2,2],[-2,2]],"shape":[40,40,40]},"nGhosts":[2,2,2],"name":"phi"}

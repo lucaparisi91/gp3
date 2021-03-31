@@ -21,11 +21,9 @@ json_t toJson(const amrex::Geometry & geo)
         domain[d].resize(2);
         domain[d][0]=geo.ProbLo(d);
         domain[d][1]=geo.ProbHi(d);
-        
-        
+
     }
-
-
+    
     json_t j;
 
 
@@ -64,9 +62,32 @@ json_t toJson(const amrex::BoxArray & ba, const amrex::DistributionMapping & dm)
     return j["boxes"];
 }
 
+json_t toJson(const amrex::BoxArray & ba)
+{
+    json_t j;
+
+    j["boxes"]=std::vector<int>();
 
 
 
+    for (int i=0;i<ba.size();i++ )
+    {
+        auto currentBox = ba[i];
+        std::vector<std::vector<int> > range;
+        for(int d=0;d<DIMENSIONS;d++)
+        {
+            range.push_back({currentBox.smallEnd()[d],currentBox.bigEnd()[d]});
+        }
+
+        json_t jBox;
+        jBox["range"]=range;
+
+        j["boxes"].push_back(jBox);
+        
+    }
+
+    return j["boxes"];
+}
 
 
 
@@ -74,6 +95,8 @@ amrex::BoxArray createBoxes(const json_t & j)
 {
     // load boxes from json file
     amrex::Vector<amrex::Box> boxes;
+
+
 
     for (auto currentBox : j )
     {
@@ -106,23 +129,20 @@ amrex::Box createDomainBox(const json_t & settings)
 {
     std::array<size_t,AMREX_SPACEDIM> shape;
 
+
     for (int i=0;i<AMREX_SPACEDIM;i++)
     {
         shape[i] = settings["shape"][i].get<int>();
-
     }
+
 
     amrex::IntVect dom_lo(AMREX_D_DECL(       0,        0,        0));
     amrex::IntVect dom_hi(AMREX_D_DECL( shape[0]-1, shape[1]-1, shape[2]-1));
 
-
     amrex::Box domain(dom_lo, dom_hi);
 
     return domain;
-
-
 }
-
 
 amrex::BoxArray createGrids(const json_t & j)
 {
@@ -132,6 +152,8 @@ amrex::BoxArray createGrids(const json_t & j)
     }
     else
     {
+        
+        
         amrex::BoxArray ba;
         auto domain=createDomainBox(j["geometry"]);
         ba.define(domain);
@@ -141,13 +163,11 @@ amrex::BoxArray createGrids(const json_t & j)
             ba.maxSize(max_grid_size);
         }
         return ba;
+
+        
     }
 
 };
-
-
-
-
 
 std::tuple< amrex::Geometry   , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
 createGeometry( const json_t & settings)
@@ -166,12 +186,9 @@ createGeometry( const json_t & settings)
     {
         lower_edges[i]=settings["domain"][i][0].get<Real>();
         higher_edges[i]=settings["domain"][i][1].get<Real>();
-
     }
     
     auto domain=createDomainBox(settings);
-
-
 
     amrex::RealBox real_box({AMREX_D_DECL( lower_edges[0],lower_edges[1],lower_edges[2]) },
                          {AMREX_D_DECL( higher_edges[0], higher_edges[1], higher_edges[2] )});

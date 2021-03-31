@@ -4,8 +4,6 @@
 
 namespace fs = std::filesystem;
 
-
-
 namespace gp
 {
 
@@ -24,36 +22,36 @@ constWavefunctionRegion wavefunction::operator[](const amrex::MFIter & mfi)  con
 
 void wavefunction::save(const std::string & folder)
 {
+
      auto amrexFileName = folder + std::string("/") + _name ;
-
-
-
-    // save multifab
     
-    if (!fs::exists(folder)) 
+    
+    // save multifab
+    if (amrex::ParallelDescriptor::IOProcessor() )
+    {
+         if (!fs::exists(folder)) 
         {
             fs::create_directory(folder);
         } 
 
+    } 
+
+    amrex::ParallelDescriptor::Barrier();
+
     amrex::VisMF::Write(*_phi, amrexFileName);
 
+    if (amrex::ParallelDescriptor::IOProcessor() )
+     {
     auto jGeo= toJson( getGeometry());
-
-
-    const auto & dm = (*_phi).DistributionMap();
-    const auto & ba = (*_phi).boxArray();
-    
-    auto jBoxes= toJson( ba,dm);
 
 
     json_t j;
 
+    const auto & ba = (*_phi).boxArray();
     auto jsonFilename = folder + std::string("/") + std::string("wave.json") ;
 
-
-
+    j["boxes"]=toJson(ba);
     j["geometry"]=jGeo;
-    j["boxes"]=jBoxes;
     j["components"]=_phi->nComp()/2;
 
     std::vector<int> nGhosts;
@@ -67,13 +65,15 @@ void wavefunction::save(const std::string & folder)
     j["name"]=_name;
     j["folder"]=folder;
 
-
     std::ofstream f;
     f.open(jsonFilename);
 
     f << j ;
 
     f.close();
+
+     }
+
 
 
 }
@@ -97,13 +97,15 @@ amrex::MultiFab  createMultiFab(const json_t & settings)
             nComp=settings["components"].get<int>()*2;
 
         }
- 
+    
+
     auto ba = createGrids(settings);
 
     amrex::DistributionMapping dm(ba);
-
-
+    
     phi.define(ba, dm, nComp, nGhostsAmrex); 
+    phi=0;
+    
 
     if ( 
         (settings.find("folder") !=settings.end() ) and 
@@ -116,6 +118,8 @@ amrex::MultiFab  createMultiFab(const json_t & settings)
             amrex::VisMF::Read(phi, filename);
             }
         }
+
+
     
 
 

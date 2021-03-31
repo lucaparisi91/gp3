@@ -40,6 +40,8 @@ namespace gp
         
         const auto & getPhi() const {return *_phi;}
 
+        const auto nGhosts() const {return _phi->nGrow();}
+
 
         wavefunctionRegion operator[](const amrex::MFIter & it) ;
 
@@ -81,9 +83,17 @@ namespace gp
          {
              _phiArr=_phi->array();
          }
-
+         
         int minIndex(int d) const {return boxRegion.loVect()[d]; }
         int maxIndex(int d) const {return boxRegion.hiVect()[d];}
+
+       
+       
+
+
+
+
+
 
         smallVector minIndex();
         smallVector maxIndex();
@@ -108,6 +118,8 @@ namespace gp
         {
             return maxIndex(d) - minIndex(d) + 1;
         }
+
+        
 
         const auto size() const
         {

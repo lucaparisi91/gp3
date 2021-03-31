@@ -1,0 +1,55 @@
+{
+    "geometry": {
+        "shape": [
+            400,
+            400,
+            400
+        ],
+        "domain": [
+            [
+                -5,
+                5
+            ],
+            [
+                -5,
+                5
+            ],
+            [
+                -5,
+                5
+            ]
+        ],
+        "coordinates": "cartesian"
+    },
+    "maxGridSize": 100.0,
+    "nGhosts": [
+        2,
+        2,
+        2
+    ],
+    "components": 1,
+    "value": "complex",
+    "initialCondition": "gaussian_alpha1",
+    "stepper": "eulero",
+    "laplacianScheme": {
+        "kind": "finiteDifference",
+        "order": 2
+    },
+    "initialTime": 0,
+    "maxTime": 0.5,
+    "timeStep": 0.0005,
+    "stepsPerBlock": 100,
+    "normalization": 1,
+    "imaginaryTime": true,
+    "functional": {
+        "kind": "trappedGP",
+        "g": [
+            1
+        ],
+        "omega": [
+            0.5,
+            0.5,
+            0.5
+        ]
+    }
+}

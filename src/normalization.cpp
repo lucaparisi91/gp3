@@ -33,10 +33,10 @@ namespace gp
                 Real tmp,tmp2;
                 tmp=phi.norm2(2*c)*std::sqrt(dV);
                 tmp2=phi.norm2(2*c+1)*std::sqrt(dV);
-
+                
                 currentNorms[c]=std::sqrt(tmp*tmp + tmp2*tmp2);
 
-                amrex::ParallelAllReduce::Sum(currentNorms[c],MPI_COMM_WORLD);
+                //amrex::ParallelAllReduce::Sum(currentNorms[c],MPI_COMM_WORLD);
 
 
             }

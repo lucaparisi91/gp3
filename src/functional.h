@@ -43,10 +43,11 @@ class trappedGPFunctional : public functional
 };
 
 
+
+void setGaussian(
+	wavefunction & waveNew, Real alpha, int c);
+
 }
-
-
-
 
 
 #endif

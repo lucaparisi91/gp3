@@ -27,6 +27,10 @@ void saveMultifab( py::list initialConditions , const json_t & settings   )
     std::string name=settings["name"].get<std::string>();
 
     gp::wavefunction wave(&phi,&geom,name);
+    
+    auto nGhosts = settings["nGhosts"].get<std::vector<int> >();
+
+
 
 
     int i=0;
@@ -76,12 +80,18 @@ void saveMultifab( py::list initialConditions , const json_t & settings   )
         }
 
 #if AMREX_SPACEDIM == 3    
-            for (int k=region.minIndex(2);k<=region.maxIndex(2);k++)
-	 		    for (int j=region.minIndex(1);j<=region.maxIndex(1);j++) 
-	     	        for (int i=region.minIndex(0);i<=region.maxIndex(0);i++)
+            for (int k=region.minIndex(2)-nGhosts[2];k<=region.maxIndex(2) + nGhosts[2];k++)
+	 		    for (int j=region.minIndex(1)-nGhosts[1];j<=region.maxIndex(1)+nGhosts[1];j++) 
+	     	        for (int i=region.minIndex(0)-nGhosts[0];i<=region.maxIndex(0)+nGhosts[0];i++)
                         for(int c=0;c<pyComps;c+=1)
                         {
-                            int index = i + j*shape[0] + k *shape[0] * shape[1] + c * shape[0] * shape[1] * shape[2];
+                            int ii=i - region.minIndex(0) + nGhosts[0];
+                            int jj=j - region.minIndex(1) + nGhosts[1];
+                            int kk=k - region.minIndex(2) + nGhosts[2];
+
+                            int index = ii + jj*shape[0] + kk *shape[0] * shape[1] + c * shape[0] * shape[1] * shape[2];
+
+
 
 
                             phi_arr(i,j,k,2*c+1)=data[index].imag();
@@ -117,6 +127,7 @@ std::vector<std::vector<std::complex<double> > > readMultifab( const json_t & se
 
     gp::wavefunction wave(&phi,&geom);
 
+    auto nGhosts = settings["nGhosts"].get<std::vector<int> >();
 
     
 
@@ -129,21 +140,38 @@ std::vector<std::vector<std::complex<double> > > readMultifab( const json_t & se
         auto & phi_arr = region.getPhi<gp::array_t>();
 
         //std::cout <<"region " <<  region.size() << std::endl;
-
-        std::vector<std::complex<double> > regionData(region.size()/2,std::complex<double>(0,0));
-
-
-        std::array<int,gp::DIMENSIONS> shape {AMREX_D_DECL( region.size(0),region.size(1),region.size(2))};
-
         
+        size_t grownSize=1;
+
+        std::array<int,gp::DIMENSIONS> shape {AMREX_D_DECL( region.size(0) + 2*nGhosts[0],region.size(1)+2*nGhosts[1],region.size(2) + 2*nGhosts[2])};
+
+
+        for (int d=0;d<gp::DIMENSIONS;d++)
+        {
+            grownSize*=shape[d];
+        }        
+
+
+        grownSize*=phi.nComp()/2;
+
+        std::vector<std::complex<double> > regionData(grownSize,std::complex<double>(0,0));
+
+        std::cout << "reading..." << std::endl;
+
 
 #if AMREX_SPACEDIM == 3    
-            for (int k=region.minIndex(2);k<=region.maxIndex(2);k++)
-	 		    for (int j=region.minIndex(1);j<=region.maxIndex(1);j++) 
-	     	        for (int i=region.minIndex(0);i<=region.maxIndex(0);i++)
-                        for(int c=0;c<region.nComp()/2;c+=1)
+    for (int k=region.minIndex(2)-nGhosts[2];k<=region.maxIndex(2) + nGhosts[2];k++)
+	 		    for (int j=region.minIndex(1)-nGhosts[1];j<=region.maxIndex(1)+nGhosts[1];j++) 
+	     	        for (int i=region.minIndex(0)-nGhosts[0];i<=region.maxIndex(0)+nGhosts[0];i++)
+                        for(int c=0;c<phi.nComp()/2;c+=1)
                         {
-                            int index = i + j*shape[0] + k *shape[0] * shape[1] + c * shape[0] * shape[1] * shape[2];
+                            int ii=i - region.minIndex(0) + nGhosts[0];
+                            int jj=j - region.minIndex(1) + nGhosts[1];
+                            int kk=k - region.minIndex(2) + nGhosts[2];
+
+                            int index = ii + jj*shape[0] + kk *shape[0] * shape[1] + c * shape[0] * shape[1] * shape[2];
+
+
 
                             //std::cout << phi_arr(i,j,k,2*c) << std::endl; 
                             regionData[index]=std::complex<double>(phi_arr(i,j,k,2*c) ,phi_arr(i,j,k,2*c + 1) );

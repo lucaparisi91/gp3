@@ -12,3 +12,7 @@ target_link_libraries(tst PUBLIC MPI::MPI_CXX)
 target_include_directories(gp_lib PUBLIC
 ${PROJECT_SOURCE_DIR}/external/json/include
 			   )
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(tst PUBLIC OpenMP::OpenMP_CXX)
+endif()
+           

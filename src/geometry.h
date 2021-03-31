@@ -15,6 +15,8 @@ amrex::BoxArray createBoxes(const json_t & j);
 
 json_t toJson(const amrex::Geometry & geo);
 json_t toJson(const amrex::BoxArray & box,const amrex::DistributionMapping & dm);
+json_t toJson(const amrex::BoxArray & box);
+
 
 
 
