@@ -144,6 +144,27 @@ amrex::Box createDomainBox(const json_t & settings)
     return domain;
 }
 
+
+
+void chopBoxArray(amrex::BoxArray & ba,int target_size, const amrex::IntVect & max_grid_size , const amrex::IntVect & blocking_factor )
+{
+    // assume max_grid_size is even
+for (int cnt = 1; cnt <= 4; cnt *= 2)
+    {
+        amrex::IntVect chunk = max_grid_size / cnt;
+
+        for (int j = AMREX_SPACEDIM-1; j >= 0 ; j--)
+        {
+            chunk[j] /= 2;
+
+            if ( (ba.size() < target_size) && (chunk[j]%blocking_factor[j] == 0) )
+            {
+                ba.maxSize(chunk);
+            }
+        }
+    }
+}
+
 amrex::BoxArray createGrids(const json_t & j)
 {
     if (j.find("boxes") != j.end() )
@@ -152,22 +173,54 @@ amrex::BoxArray createGrids(const json_t & j)
     }
     else
     {
-        
-        
         amrex::BoxArray ba;
         auto domain=createDomainBox(j["geometry"]);
         ba.define(domain);
+        amrex::IntVect maxGridSize;
+        amrex::IntVect blocking_factor;
+        int max_grid_size_d;
+        int blocking_factor_d;
+        
         if (j.contains("maxGridSize") )
         {
-            int max_grid_size = j["maxGridSize"].get<int>();
-            ba.maxSize(max_grid_size);
+            max_grid_size_d= j["maxGridSize"].get<int>();
         }
+        else
+        {
+            max_grid_size_d=64;
+        }
+
+        maxGridSize={AMREX_D_DECL(max_grid_size_d,max_grid_size_d,max_grid_size_d)};
+
+        if (j.contains("blockingFactor") )
+        {
+            blocking_factor_d = j["blockingFactor"].get<int>();
+        }
+        else
+        {
+            blocking_factor_d=8;
+        }
+
+        
+        blocking_factor={AMREX_D_DECL(blocking_factor_d,blocking_factor_d,blocking_factor_d)};
+
+
+        amrex::IntVect nGridsPerDimension;
+
+        int nGrids=amrex::ParallelDescriptor::NProcs();
+
+        chopBoxArray(ba,nGrids ,maxGridSize,blocking_factor);
+
+
         return ba;
 
         
     }
 
 };
+
+
+
 
 std::tuple< amrex::Geometry   , std::array<BC,AMREX_SPACEDIM>,   std::array<BC,AMREX_SPACEDIM>  >
 createGeometry( const json_t & settings)

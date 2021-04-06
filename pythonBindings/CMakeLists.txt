@@ -18,7 +18,8 @@ include_directories( PUBLIC
 
 pybind11_add_module(gpIO_c ${PYTHON_BINDING_FILES} )
 include_directories( ${PYTHON_INCLUDE_DIRS})
-target_link_libraries( gpIO_c PRIVATE amrex ${MPI_LIBRARIES} gfortran gp_lib )
-
+target_link_libraries( gpIO_c PRIVATE AMReX::amrex AMReX::Flags_CXX)
+target_link_libraries( gpIO_c PUBLIC gp_lib)
+target_link_libraries(gpIO_c PUBLIC stdc++fs)
 set_target_properties( gpIO_c PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS_ADDITIONAL} )
 

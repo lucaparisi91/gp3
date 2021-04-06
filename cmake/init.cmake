@@ -19,7 +19,9 @@ if ( ${CMAKE_BUILD_TYPE} MATCHES Debug)
 
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(MPI REQUIRED)
 find_package(OpenMP)
-
+find_package(AMReX REQUIRED)
 
