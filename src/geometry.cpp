@@ -149,13 +149,12 @@ amrex::Box createDomainBox(const json_t & settings)
 void chopBoxArray(amrex::BoxArray & ba,int target_size, const amrex::IntVect & max_grid_size , const amrex::IntVect & blocking_factor )
 {
     // assume max_grid_size is even
-for (int cnt = 1; cnt <= 4; cnt *= 2)
+for (int cnt = 1; cnt <= 40; cnt *= 2)
     {
         amrex::IntVect chunk = max_grid_size / cnt;
 
         for (int j = AMREX_SPACEDIM-1; j >= 0 ; j--)
         {
-            chunk[j] /= 2;
 
             if ( (ba.size() < target_size) && (chunk[j]%blocking_factor[j] == 0) )
             {
@@ -209,12 +208,11 @@ amrex::BoxArray createGrids(const json_t & j)
 
         int nGrids=amrex::ParallelDescriptor::NProcs();
 
+
+
+
         chopBoxArray(ba,nGrids ,maxGridSize,blocking_factor);
-
-
         return ba;
-
-        
     }
 
 };

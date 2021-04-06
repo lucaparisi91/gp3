@@ -28,6 +28,7 @@ void run(const json_t & settings)
 
     auto  phi_new = gp::createMultiFab(settings);
     auto phi_old = gp::createMultiFab(settings);
+    
     gp::Real N = settings["normalization"];
 
 
@@ -45,6 +46,9 @@ void run(const json_t & settings)
 
 
     phi_new.ParallelCopy(phi0);
+    phi_old.ParallelCopy(phi0);
+
+
 
 
     gp::wavefunction waveNew(&phi_new,&geom);
@@ -52,6 +56,7 @@ void run(const json_t & settings)
 
 
     waveNew.fillBoundaries();
+
 
     // create functional
 
@@ -90,6 +95,7 @@ void run(const json_t & settings)
         STOP_TIMER("stepping");
         time+=timeStep;
         START_TIMER("normalize");
+
         gp::normalization::normalize(waveNew,{1.});
         STOP_TIMER("normalize");
         

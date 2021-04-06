@@ -101,6 +101,9 @@ amrex::MultiFab  createMultiFab(const json_t & settings)
 
     auto ba = createGrids(settings);
 
+    //std::cout << "n boxes: " << ba.size() << std::endl;
+
+
     amrex::DistributionMapping dm(ba);
     
     phi.define(ba, dm, nComp, nGhostsAmrex); 

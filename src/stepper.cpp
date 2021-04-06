@@ -15,12 +15,11 @@ void eulerStepper::evolve(
 
 	auto & phi = waveNew.getPhi();
 	const auto & phiOld = waveOld.getPhi();
-
-
+	
 	getFunctional().evaluate(
 		waveNew, waveOld,
 		time);
-
+	
 	if (!isImaginaryTime)
 	{
 		phi.mult(-dt);
