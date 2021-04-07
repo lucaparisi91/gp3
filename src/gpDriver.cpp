@@ -86,7 +86,7 @@ void run(const json_t & settings)
     waveNew.save("phi" + std::to_string(iteration));
 
     START_TIMER("timeEvolution");
-
+    
     while(time<maxTime)
     {
         std::swap(waveOld,waveNew);
@@ -124,10 +124,12 @@ void run(const json_t & settings)
      
     }
     STOP_TIMER("timeEvolution");
+
     
+    auto report = timers::getInstance().report();
     if (amrex::ParallelDescriptor::IOProcessor())
     {
-        std::cout << timers::getInstance().report() << std::endl ;
+        std::cout << report << std::endl ;
     }
    
 }

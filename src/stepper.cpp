@@ -1,5 +1,5 @@
 #include "stepper.h"
-
+#include "timers.h"
 namespace gp{
 
 void eulerStepper::evolve( 
@@ -15,11 +15,13 @@ void eulerStepper::evolve(
 
 	auto & phi = waveNew.getPhi();
 	const auto & phiOld = waveOld.getPhi();
-	
+	START_TIMER("evaluate");
 	getFunctional().evaluate(
 		waveNew, waveOld,
 		time);
-	
+	STOP_TIMER("evaluate");
+
+
 	if (!isImaginaryTime)
 	{
 		phi.mult(-dt);
@@ -34,9 +36,11 @@ void eulerStepper::evolve(
 		phi.mult(-dt);
 	}
 
-
 	phi.plus(phiOld,0,phi.nComp(),0);
+	START_TIMER("fill");
 	waveNew.fillBoundaries();
+	STOP_TIMER("fill");
+
 
 }
 
@@ -52,6 +56,8 @@ void RK4Stepper::evolve(
 	auto & phi2Tmp = waveTmp2.getPhi();
 
 	const auto & phiOld = waveOld.getPhi();
+
+
 
 	evaluate(
 		waveTmp,waveOld,
