@@ -2,4 +2,4 @@
 build
 run
 external
-python/__pycache__/*
+python/__pycache__
