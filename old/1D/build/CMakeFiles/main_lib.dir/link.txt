@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmain_lib.a  CMakeFiles/main_lib.dir/src/geometry.cpp.o CMakeFiles/main_lib.dir/src/kineticEnergy.cpp.o CMakeFiles/main_lib.dir/src/potential.cpp.o CMakeFiles/main_lib.dir/src/functional.cpp.o
-/usr/bin/ranlib libmain_lib.a

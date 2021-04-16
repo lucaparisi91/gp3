@@ -11,7 +11,6 @@ ${PROJECT_SOURCE_DIR}/external/json/include
 set_target_properties(gp_lib PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS_ADDITIONAL} )
 
 
-
 # exectuable gp
 add_executable(gp main.cpp )
 set_target_properties(gp PROPERTIES LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS_ADDITIONAL} )

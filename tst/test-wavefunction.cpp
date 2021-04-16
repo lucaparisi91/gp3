@@ -159,6 +159,7 @@ TEST(wavefunction, evaluateFunctional)
 
     auto f = gp::operators::laplacian<orderDerivative::first,gp::DIMENSIONS>{} ;
 
+    
     testKernelLauncher.apply(waveNew, waveOld, setPhi,f);
 
     testKernelLauncher.apply(waveNew,fillInitial,lapCheck_t{5e-2});

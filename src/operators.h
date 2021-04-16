@@ -21,19 +21,27 @@ struct laplacian : public operatorBase
     laplacian() {
         static_assert(order == 1,"Only 1st order laplacian is supported");
         static_assert(dim == 3, "Only 3D laplacians are supported");
+    }
+
+    void setGeometry( const geometry & geom)
+    {
+       
+        for (int d=0;d<DIMENSIONS;d++)
+        {
+            laplacianMultiplicationFactor[d]=1./(geom.CellSize()[d]*geom.CellSize()[d]);
+        }
 
     }
 
 
-    Real operator()(int i, int j , int k, int c, const gp::const_array_t & phi, const geometry & geom) const
+    Real operator()(int i, int j , int k, int c, const gp::const_array_t & phi) const
     {   
         if constexpr (dim == 3 and order==1 )
         {
-            return ( phi(i+1,j,k,c) -2*phi(i,j,k,c) + phi(i-1,j,k,c) )/(geom.CellSize()[0]*geom.CellSize()[0]) +
-                    ( phi(i,j+1,k,c) -2*phi(i,j,k,c) + phi(i,j-1,k,c) )/(geom.CellSize()[1]*geom.CellSize()[1]) + 
-                    ( phi(i,j,k+1,c) -2*phi(i,j,k,c) + phi(i,j,k-1,c) )/(geom.CellSize()[2]*geom.CellSize()[2]) ;
+            return ( phi(i+1,j,k,c) -2*phi(i,j,k,c) + phi(i-1,j,k,c) )*laplacianMultiplicationFactor[0]+
+                    ( phi(i,j+1,k,c) -2*phi(i,j,k,c) + phi(i,j-1,k,c) )*laplacianMultiplicationFactor[1]+ 
+                    ( phi(i,j,k+1,c) -2*phi(i,j,k,c) + phi(i,j,k-1,c) )*laplacianMultiplicationFactor[2];
         }
-
 
     }
 
@@ -43,9 +51,12 @@ struct laplacian : public operatorBase
         const auto & phi = wave.getPhi<gp::array_t>();
         const auto & geom = wave.getGeometry();
 
-        return (*this)(i,j,k,c,phi,geom);
+        return (*this)(i,j,k,c,phi);
         
     }
+    private:
+
+     std::array<Real,3 > laplacianMultiplicationFactor;
 
 };
 

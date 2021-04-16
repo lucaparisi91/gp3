@@ -153,7 +153,7 @@ struct  constWavefunctionRegion
 
         int minIndex(int d) const {return boxRegion.loVect()[d]; }
         int maxIndex(int d) const {return boxRegion.hiVect()[d];}
-
+        
 
         auto size( int d) const
         {
