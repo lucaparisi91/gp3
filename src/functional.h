@@ -43,6 +43,24 @@ class trappedGPFunctional : public functional
 };
 
 
+template<class laplacianOperator_t>
+class dropletFunctional : public functional
+{
+    public:
+
+    dropletFunctional() {};
+	dropletFunctional(const json_t & j ){}
+
+    virtual void evaluate(
+	wavefunction & waveNew, const  wavefunction & waveOld, Real time ) ;
+
+	static std::string name() {return "droplet";}
+
+    private:
+
+	laplacianOperator_t _lap;
+
+};
 
 void setGaussian(
 	wavefunction & waveNew, Real alpha, int c);
