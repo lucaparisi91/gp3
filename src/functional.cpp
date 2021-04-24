@@ -22,6 +22,7 @@ void trappedGPFunctional<laplacianOperator_t>::evaluate(
             amrex::Array4<Real> const& phiNew = mfNew.array(mfi); 
             amrex::Array4<const Real> const& phiOld = mfOld.const_array(mfi); 
 
+            
             int i0=bx.smallEnd(0); int i1=bx.bigEnd(0);
 
             const int C= waveNew.nComp();
@@ -116,7 +117,6 @@ void dropletFunctional<laplacianOperator_t>::evaluate(
     }
 }
 };
-
 
 void setGaussian(
 	wavefunction & waveNew, Real alpha, int c)

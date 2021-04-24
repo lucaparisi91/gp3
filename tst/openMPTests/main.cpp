@@ -3,7 +3,6 @@ using Real = double;
 #include <cmath>
 #include <iostream>
 #include "timers.h"
-
 #include "mpi.h"
 
 int main(int argc,char** argv)

@@ -1,6 +1,6 @@
 
 #library of gp routines
-set(GP_FILES wavefunction.cpp geometry.cpp tools.cpp functional.cpp stepper.cpp normalization.cpp gpDriver.cpp timers.cpp)
+set(GP_FILES wavefunction.cpp geometry.cpp tools.cpp functional.cpp stepper.cpp normalization.cpp gpDriver.cpp timers.cpp functionalFactory.cpp)
 
 add_library(gp_lib ${GP_FILES} )
 target_link_libraries(gp_lib PRIVATE AMReX::amrex AMReX::Flags_CXX)

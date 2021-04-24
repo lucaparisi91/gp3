@@ -3,6 +3,7 @@
 
 #include "geometry.h"
 
+
 namespace gp
 {
     using box=amrex::Box;
@@ -21,7 +22,7 @@ namespace gp
 
     amrex::MultiFab  createMultiFab(const json_t & settings);
 
-
+    
     struct wavefunction
     {
         // contains the wavefunction at a single level of refinement

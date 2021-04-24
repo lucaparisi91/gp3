@@ -7,6 +7,8 @@
 #include "stepper.h"
 #include <string>
 #include "timers.h"
+#include "functionalFactory.h"
+
 namespace gp
 {
 namespace gpDriver
@@ -15,7 +17,6 @@ namespace gpDriver
 
 using json_t = gp::json_t;
 using Real = gp::Real;
-
 
 
 void run(const json_t & settings)
@@ -60,18 +61,19 @@ void run(const json_t & settings)
 
     // create functional
 
-
     gp::normalization::normalize(waveNew,{N});
 
-
-    gp::trappedGPFunctional<gp::operators::laplacian<1,gp::DIMENSIONS> > func;  
-
-
-
     
+    gp::functionalFactory fac;
+    fac.registerFunctional<gp::trappedGPFunctional<gp::operators::laplacian<1,gp::DIMENSIONS> > >("trappedGP");
+
+    auto func = fac.create(settings["functional"]);
+
+
+
     bool imaginaryTime=settings["imaginaryTime"].get<bool>();
 
-    gp::eulerStepper stepper(&func,imaginaryTime);
+    gp::eulerStepper stepper(&(*func),imaginaryTime);
     gp::Real time=settings["initialTime"].get<gp::Real>();
     gp::Real timeStep=settings["timeStep"].get<gp::Real>();
 
@@ -86,7 +88,7 @@ void run(const json_t & settings)
     waveNew.save("phi" + std::to_string(iteration));
 
     START_TIMER("timeEvolution");
-    
+
     while(time<maxTime)
     {
         std::swap(waveOld,waveNew);
