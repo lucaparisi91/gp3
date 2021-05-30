@@ -3,12 +3,20 @@ using Real = double;
 #include <cmath>
 #include <iostream>
 #include "timers.h"
-#include "mpi.h"
+#include "mpiTools.h"
+
+
+
+
+
+
+
 
 int main(int argc,char** argv)
 {
 
     MPI_Init(&argc,&argv);
+
     
     int N=400;
     int nTrials = 10 ;
@@ -17,14 +25,17 @@ int main(int argc,char** argv)
         N =std::atoi( argv[1]);
     }
     
+
     if (argc >= 3)
     {
         nTrials =std::atoi( argv[2]);
-    }
-
+    }    
 
     int nGhosts=1;
     int nExtended = N + 2*nGhosts;
+
+    
+
 
 
 

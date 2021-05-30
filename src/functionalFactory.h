@@ -11,7 +11,6 @@ std::shared_ptr<functional> __createFunctional(const json_t & j)
     return std::make_shared<T>(j);
  }
 
-
 class functionalFactory
 {
     public:
